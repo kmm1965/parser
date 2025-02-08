@@ -47,6 +47,7 @@ struct Parser {
     using pair_t = parser_pair<A>;
     using result_t = parser_data<A>;
     using function_t = std::function<result_t(std::string const&)>;
+    using bin_func_t = binary_function<A>;
 
     Parser(function_t const& p) : p(p){}
 
@@ -126,11 +127,11 @@ struct Parser {
 
     Parser token() const;
 
-    Parser rest_l(A a, Parser<binary_function<A> > const& op) const;
-    Parser chainl1(Parser<binary_function<A> > const& op) const;
-    Parser scan(Parser<binary_function<A> > const& op) const;
-    Parser rest_r(A a, Parser<binary_function<A> > const& op) const;
-    Parser chainr1(Parser<binary_function<A> > const& op) const;
+    Parser rest_l(A a, Parser<bin_func_t> const& op) const;
+    Parser chainl1(Parser<bin_func_t> const& op) const;
+    Parser scan(Parser<bin_func_t> const& op) const;
+    Parser rest_r(A a, Parser<bin_func_t> const& op) const;
+    Parser chainr1(Parser<bin_func_t> const& op) const;
 
 private:
     function_t p;
@@ -279,13 +280,13 @@ Parser<A> rest(A x, Parser<binary_function<A> > const& op, supplier<Parser<A> > 
 }
 
 template<typename A>
-Parser<A> Parser<A>::rest_l(A x, Parser<binary_function<A> > const& op) const {
+Parser<A> Parser<A>::rest_l(A x, Parser<bin_func_t> const& op) const {
     Parser const self(*this);
     return rest(x, op, _([self](){ return self; }), _([self, op](A y){ return self.rest_l(y, op); }));
 }
 
 template<typename A>
-Parser<A> Parser<A>::chainl1(Parser<binary_function<A> > const& op) const {
+Parser<A> Parser<A>::chainl1(Parser<bin_func_t> const& op) const {
     Parser const self(*this);
     return _do(x, *this, self.rest_l(x, op));
 }
@@ -303,26 +304,27 @@ chainr1 p op = scan
           <|> return x
 */
 template<typename A>
-Parser<A> Parser<A>::scan(Parser<binary_function<A> > const& op) const {
+Parser<A> Parser<A>::scan(Parser<bin_func_t> const& op) const {
     Parser const self(*this);
     return _do(x, *this, self.rest_r(x, op));
 }
 
 template<typename A>
-Parser<A> Parser<A>::rest_r(A x, Parser<binary_function<A> > const& op) const {
+Parser<A> Parser<A>::rest_r(A x, Parser<bin_func_t> const& op) const {
     Parser const self(*this);
     return rest(x, op, _([self, op](){ return self.scan(op); }), _([](A y){ return pure(y); }));
 }
 
 template<typename A>
-Parser<A> Parser<A>::chainr1(Parser<binary_function<A> > const& op) const {
+Parser<A> Parser<A>::chainr1(Parser<bin_func_t> const& op) const {
     return scan(op);
 }
 
 class calculator
 {
 private:
-    using Parser_f = Parser<binary_function<double> >;
+    using bin_func_t = binary_function<double>;
+    using Parser_f = Parser<bin_func_t>;
     using Parser_d = Parser<double>;
     using func_t = unary_function<double>;
     using Parser_func = Parser<func_t>;
@@ -359,7 +361,7 @@ public:
     }
 
 private:
-    static Parser_f op2(char c, binary_function<double> const& f){
+    static Parser_f op2(char c, bin_func_t const& f){
         return symbol(c) >> Parser_f::pure(f);
     }
 
@@ -414,13 +416,13 @@ private:
 int main()
 {
     std::cout << calculator().expr()
-        //.parse("7.21e1 - 7.3 - (1.5 - 2.2) * (-3.3)")
+        .parse("7.21e1 - 7.3 - (1.5 - 2.2) * (-3.3)")
         //.parse("sqrt(exp(E * sin(2.2 * 2_PI)))")
         //.parse("sqr(2_PI)")
         //.parse("sqr(sin(2)) + sqr(cos(2))")
         //.parse("7-1-2")
         //.parse("3^2^3")
-        .parse("E^PI")
+        //.parse("E^PI")
         .transform([](parser_pair<double> const& p)
     {
         assert(p.second.empty());
