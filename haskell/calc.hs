@@ -9,11 +9,11 @@ parse (P p) inp = p inp
 
 instance Functor Parser where
     -- fmap :: (a -> b) -> Parser a -> Parser b
-    fmap f p = P (\inp -> (\(x, out) -> (f x, out)) <$> parse p inp)
+    fmap f p = P $ \inp -> (\(x, out) -> (f x, out)) <$> parse p inp
 
 instance Applicative Parser where
     -- pure :: a -> Parser a
-    pure x = P (\inp -> Just (x, inp))
+    pure x = P $ \inp -> Just (x, inp)
 
     -- (<*>) :: Parser (a -> b) -> Parser a -> Parser b
     pf <*> q = do f <- pf; f <$> q
@@ -21,21 +21,21 @@ instance Applicative Parser where
 instance Monad Parser where
     return = pure
     -- (>>=) :: Parser a -> (a -> Parser b) -> Parser b
-    p >>= f = P (\inp -> do (x, out) <- parse p inp; parse (f x) out)
+    -- p >>= f = P $ \inp -> do (x, out) <- parse p inp; parse (f x) out
+    p >>= f = P $ \inp -> parse p inp >>= (\(x, out) -> parse (f x) out)
 
 instance Alternative Parser where
     -- empty :: Parser a
-    empty = P (\inp -> Nothing)
+    empty = P $ \_ -> Nothing
 
     -- (<|>) :: Parser a -> Parser a -> Parser a
-    p <|> q = P (\inp -> parse p inp <|> parse q inp)
+    p <|> q = P $ \inp -> parse p inp <|> parse q inp
 
 anyChar :: Parser Char
-anyChar = P (\inp -> case inp of
+anyChar = P $ \inp -> case inp of
     []     -> Nothing
     (x:xs) -> Just (x, xs)
-  )
-
+  
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy f = do
     x <- anyChar
@@ -175,9 +175,7 @@ factor = factor0 `chainr1` pow where
     fpow x y = exp $ y * log x
 
 calculate :: String -> Maybe Double
-calculate s = case parse expr s of
-    Nothing -> Nothing
-    Just (x, "") -> Just x
+calculate s = (\(x, "") -> x) <$> parse expr s
 
 main :: IO ()
 main = do
