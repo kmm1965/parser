@@ -112,4 +112,9 @@ public class Parser<A> {
     public Parser<A> chainr1(Parser<BinaryOperator<A>> op){
         return scan(op);
     }
+
+    public static <Open, Close, A> Parser<A> between(Parser<Open> open, Parser<Close> close, Supplier<Parser<A>> fp){
+        return open.flatMap(c1 -> fp.get())
+            .flatMap(e -> close.flatMap(c2 -> Parser.pure(e)));
+    }
 }

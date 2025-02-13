@@ -5,9 +5,11 @@ import java.util.function.BinaryOperator;
 
 public class Calculator {
 
+    private final Parser<Character> br_open  = Parser.symbol('(');
+    private final Parser<Character> br_close = Parser.symbol(')');
+
     private Parser<Double> expr_in_brackets(){
-        return Parser.symbol('(').flatMap(
-            c1 -> expr().flatMap(e -> Parser.symbol(')').flatMap(c2 -> Parser.pure(e))));
+        return Parser.between(br_open, br_close, this::expr);
     }
 
     private Parser<Double> factor0(){

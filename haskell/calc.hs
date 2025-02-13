@@ -86,6 +86,11 @@ name n = do
     alnum :: Parser Char
     alnum = satisfy $ \c -> isAlphaNum c || c == '_'
 
+between :: Parser open -> Parser close -> Parser a -> Parser a
+between open close p = do
+    open;  x <- p
+    close; return x
+
 sqr :: (Num a) => a -> a
 sqr x = x * x
 
@@ -148,6 +153,7 @@ _const = foldl1 (<|>) constants
 
 op2 :: Char -> (Double -> Double -> Double) -> Parser (Double -> Double -> Double)
 op2 c f = symbol c >> return f
+-- op2 c f = const f <$> symbol c
 
 expr :: Parser Double
 expr = term `chainl1` (add <|> sub) where
@@ -165,9 +171,9 @@ factor0 = expr_in_brackets
     <|> _const
     <|> double
   where
-    expr_in_brackets = do
-        symbol '('; e <- expr
-        symbol ')'; return e 
+    expr_in_brackets = between br_open br_close expr
+    br_open  = symbol '('
+    br_close = symbol ')'
 
 factor :: Parser Double
 factor = factor0 `chainr1` pow where

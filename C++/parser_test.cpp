@@ -320,21 +320,32 @@ Parser<A> Parser<A>::chainr1(Parser<bin_func_t> const& op) const {
     return scan(op);
 }
 
+template<typename Open, typename Close, typename A>
+Parser<A> between(Parser<Open> const& open, Parser<Close> const& close, supplier<Parser<A> > const& fp)
+{
+    // make expr and pure lasy
+    return _do(e, open  >> _([fp](){ return fp(); }),
+                  close >> _([e](){ return Parser<A>::pure(e); }));
+}
+
 class calculator
 {
 private:
     using bin_func_t = binary_function<double>;
     using Parser_f = Parser<bin_func_t>;
     using Parser_d = Parser<double>;
+    using Parser_c = Parser<char>;
     using func_t = unary_function<double>;
     using Parser_func = Parser<func_t>;
 
+    Parser_c const
+        br_open  = symbol('('),
+        br_close = symbol(')');
+
     Parser_d expr_in_brackets() const
     {
-        // make expr and pure lasy
         calculator const self(*this);
-        return _do(e, symbol('(') >> _([self](){ return self.expr(); }),
-                      symbol(')') >> _([e](){ return Parser_d::pure(e); }));
+        return between(br_open, br_close, _([self](){ return self.expr(); }));
     }
 
     Parser_d factor0() const
