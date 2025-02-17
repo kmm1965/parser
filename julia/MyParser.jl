@@ -174,8 +174,9 @@ expr_in_brackets() = between(symbol('('), symbol(')'), expr)
 
 #end
 
-println(my_parse(expr(), " 7 - 1 - 2 "))
-println(my_parse(expr(), "3^(1+1)^3"))
-println(my_parse(expr(), "sin(1+1)"))
-println(my_parse(expr(), "sin(pi/4)"))
-println(my_parse(expr(), "sqr(5)"))
+e = expr()
+println(my_parse(e, "72 - 7 - (1 - 2) * 3"))
+println(my_parse(e, "3^(1+1)^3"))
+println(my_parse(e, "sin(1+1)"))
+println(my_parse(e, "sin(pi/4)"))
+println(my_parse(e, "sqr(5)"))
