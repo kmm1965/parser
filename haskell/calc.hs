@@ -41,13 +41,13 @@ satisfy f = do
     x <- anyChar
     if f x then return x else empty
 
-space :: Parser String
-space = many $ satisfy isSpace
+spaces :: Parser String
+spaces = many $ satisfy isSpace
 
 token :: Parser a -> Parser a
 token p = do
-    space; q <- p
-    space; return q
+    spaces; q <- p
+    spaces; return q
 
 symbol :: Char -> Parser Char
 symbol c = token (char c) where
