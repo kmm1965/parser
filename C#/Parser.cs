@@ -21,13 +21,7 @@
         // Applicative
         public static Parser<T> Pure(T value) => new Parser<T>(inp => Maybe.Some((value, inp)));
 
-        public Parser<TResult> Apply<TResult>(Parser<Func<T, TResult>> pf)
-        {
-            Parser<T> self = this;
-            return pf.FlatMap(func => self.Map(func));
-        }
-
-        public static Parser<TResult> apply<TResult>(Parser<Func<T, TResult>> pf, Func<Parser<T>> fq) => pf.FlatMap(func => fq().Map(func));
+        public static Parser<TResult> Apply<TResult>(Parser<Func<T, TResult>> pf, Func<Parser<T>> fq) => pf.FlatMap(func => fq().Map(func));
 
         // Monad
         public Parser<TResult> FlatMap<TResult>(Func<T, Parser<TResult>> fp)
@@ -55,7 +49,7 @@
 
         public static Parser<T> operator |(Parser<T> p, Func<Parser<T>> fp) => p.OrElseGet(fp);
 
-        static public Parser<string> Some(Parser<char> p) => Parser<string>.apply(p.Map<Func<string, string>>(c => s => c + s), () => Many(p));
+        static public Parser<string> Some(Parser<char> p) => Parser<string>.Apply(p.Map<Func<string, string>>(c => s => c + s), () => Many(p));
 
         public static Parser<string> Many(Parser<char> p) => Some(p) | Parser<string>.Pure("");
 
@@ -74,13 +68,11 @@
 
         public static Parser<string> Spaces => Many(Satisfy(Char.IsWhiteSpace));
 
-        public Parser<T> Token()
-        {
-            Parser<T> self = this;
-            return Spaces
-                .FlatMap(_ => self)
-                .FlatMap(a => Spaces.FlatMap(_ => Parser<T>.Pure(a)));
-        }
+        public Parser<U> Skip<U>(Parser<U> p) => FlatMap(_ => p);
+
+        public Parser<U> Skip<U>(Func<Parser<U>> fp) => FlatMap(_ => fp());
+
+        public Parser<T> Token() => Spaces.Skip(this).FlatMap(a => Spaces.Skip(Parser<T>.Pure(a)));
 
         public static Parser<double> Natural => Some(Digit).FlatMap(s => Parser<double>.Pure(double.Parse(s)));
 
@@ -109,8 +101,6 @@
 
 
         public static Parser<T> Between<Open, Close>(Parser<Open> open, Parser<Close> close, Func<Parser<T>> fp) =>
-            open
-                .FlatMap(_ => fp())
-                .FlatMap(e => close.FlatMap(_ => Parser<T>.Pure(e)));
+            open.Skip(fp).FlatMap(e => close.Skip(Parser<T>.Pure(e)));
     }
 }

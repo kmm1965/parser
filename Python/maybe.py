@@ -7,7 +7,7 @@ class Maybe(Generic[T]):
     def __init__(self, value: T | None = None):
         self.value = value
 
-    def empty() -> "Maybe[T]":
+    def empty() ->"Maybe[T]":
         return Maybe()
         
     def pure(val: T) -> "Maybe[T]":

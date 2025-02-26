@@ -20,7 +20,7 @@ namespace MonadParser
         {
             Calculator self = this;
             return ExprInBrackets()
-                | Parser<double>.apply(func, () => self.ExprInBrackets())
+                | Parser<double>.Apply(func, () => self.ExprInBrackets())
                 | _const
                 | Parser<double>.Natural;
         }
@@ -32,7 +32,7 @@ namespace MonadParser
         public Parser<double> Expr() => Term().Chainl1(add | sub);
 
         private static Parser<Func<double, double, double>> Op2(char c, Func<double, double, double> f) =>
-            Parser<char>.Symbol(c).FlatMap(_ => Parser<Func<double, double, double>>.Pure(f));
+            Parser<char>.Symbol(c).Skip(() => Parser<Func<double, double, double>>.Pure(f));
 
         private readonly Parser<Func<double, double, double>> add = Op2('+', (x, y) => x + y);
         private readonly Parser<Func<double, double, double>> sub = Op2('-', (x, y) => x - y);

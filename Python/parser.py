@@ -6,10 +6,10 @@ class Parser(Generic[T]):
     def __init__(self, unp: Callable[[str], tuple[T, str]]):
         self.unp = unp
 
-    def parse(self, inp: str) -> "tuple[T, str]":
+    def parse(self, inp: str) -> tuple[T, str]:
         return self.unp(inp)
         
-    def empty() -> "Maybe[T]":
+    def empty() -> Maybe[T]:
         return Parser(lambda inp: Maybe.empty())
         
     def pure(val: T) -> "Parser[T]":
@@ -38,10 +38,13 @@ class Parser(Generic[T]):
     def many(self) -> "Parser[str]":
         return self.some() | Parser.pure("")
 
-    def token(self) -> "Parser[T]":
-        return spaces.and_then(lambda _: self).and_then(lambda q: spaces.and_then(lambda _: Parser.pure(q)))
+    def __rshift__(self, p) -> "Parser[U]":
+        return self.and_then(lambda _: p() if callable(p) else p)
 
-    # def rest(a: T, op: Parser[Callable[[T, T], T]], fval: [Callable[[], Parser[T]]], ff: Callable[[T], Parser[T]]) -> "Parser[T]":
+    def token(self) -> "Parser[T]":
+        return (spaces >> self).and_then(lambda a: spaces >> Parser.pure(a))
+
+    # def rest(a: T, op: Parser[Callable[[T, T], T]], fval: [Callable[[], Parser[T]]], ff: Callable[[T], Parser[T]]) -> "Parser[T]:
     def rest(a: T, op, fval, ff) -> "Parser[T]":
         return op.and_then(lambda f: fval().and_then(lambda b: ff(f(a, b)))) | Parser.pure(a)
 
@@ -67,23 +70,23 @@ class Parser(Generic[T]):
     
 anyChar = Parser(lambda inp: Maybe.empty() if len(inp) == 0 else Maybe.pure((inp[0], inp[1:])))
 
-def satisfy(f: Callable[[str], bool]) -> "Parser[str]":
+def satisfy(f: Callable[[str], bool]) -> Parser[str]:
     return anyChar.and_then(lambda c: Parser.pure(c) if f(c) else Parser.empty())
 
 spaces = satisfy(str.isspace).many()
 
-def symbol(c: str) -> "Parser[str]":
+def symbol(c: str) -> Parser[str]:
     return satisfy(lambda x: x == c).token()
 
 natural = satisfy(str.isdigit).some().and_then(lambda s: Parser.pure(float(s))).token()
 
 alnum = satisfy(lambda c: c.isalnum() or c == '_')
 
-def name(n: str) -> "Parser[str]":
+def name(n: str) -> Parser[str]:
     return alnum.some().and_then(lambda s: Parser.pure(n) if s == n else Parser.empty())
 
 Open = TypeVar('Open')    # Define type variable "Open"
 Close = TypeVar('Close')  # Define type variable "Close"
 
-def between(open: Parser[Open], close: Parser[Close], fp: Callable[[], Parser[T]]) -> "Parser[T]":
-    return open.and_then(lambda _: fp() if callable(fp) else fp).and_then(lambda e: close.and_then(lambda _: Parser.pure(e)))
+def between(open: Parser[Open], close: Parser[Close], fp: Callable[[], Parser[T]]) -> Parser[T]:
+    return (open >> fp).and_then(lambda e: close >> Parser.pure(e))

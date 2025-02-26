@@ -12,19 +12,19 @@ class Calculator(object):
     br_open  = symbol('(')
     br_close = symbol(')')
 
-    def expr_in_brackets(self) -> "Parser[float]":
+    def expr_in_brackets(self) -> Parser[float]:
         return between(self.br_open, self.br_close, self.expr)
     
-    def factor0(self) -> "Parser[float]":
+    def factor0(self) -> Parser[float]:
         return self.expr_in_brackets() | self.func * self.expr_in_brackets | self._const | natural
     
-    def factor(self) -> "Parser[float]":
+    def factor(self) -> Parser[float]:
         return self.factor0().chainr1(self.fpow)
     
-    def term(self) -> "Parser[float]":
+    def term(self) -> Parser[float]:
         return self.factor().chainl1(self.mul | self.div)
     
-    def expr(self) -> "Parser[float]":
+    def expr(self) -> Parser[float]:
         return self.term().chainl1(self.add | self.sub)
     
     def op2(c: str, f: Callable[[float, float], float]) -> Parser[Callable[[float, float], float]]:
@@ -36,13 +36,13 @@ class Calculator(object):
     div = op2('/', lambda x, y: x / y)
     fpow = op2('^', pow)
 
-    def fold(parsers: list[Parser[T]]) -> "Parser[T]":
+    def fold(parsers: list[Parser[T]]) -> Parser[T]:
         p0 = Parser.empty()
         for p in parsers:
             p0 |= p
         return p0
 
-    def def_object(n: str, value: T) -> "Parser[T]":
+    def def_object(n: str, value: T) -> Parser[T]:
         return name(n).and_then(lambda _: Parser.pure(value))
     
     def sqr(x):
