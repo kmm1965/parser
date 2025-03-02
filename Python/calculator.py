@@ -28,7 +28,7 @@ class Calculator(object):
         return self.term().chainl1(self.add | self.sub)
     
     def op2(c: str, f: Callable[[float, float], float]) -> Parser[Callable[[float, float], float]]:
-        return symbol(c).and_then(lambda _: Parser.pure(f))
+        return symbol(c).skip(lambda: Parser.pure(f))
     
     add = op2('+', lambda x, y: x + y)
     sub = op2('-', lambda x, y: x - y)
@@ -43,7 +43,7 @@ class Calculator(object):
         return p0
 
     def def_object(n: str, value: T) -> Parser[T]:
-        return name(n).and_then(lambda _: Parser.pure(value))
+        return name(n).skip(lambda: Parser.pure(value))
     
     def sqr(x):
         return x * x

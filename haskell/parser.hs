@@ -59,10 +59,10 @@ list2Maybe []  = Nothing
 list2Maybe [x] = Just x
 
 double :: Parser Double
-double = P (list2Maybe . readFloat)
+double = token (P (list2Maybe . readFloat))
     
-rest :: a -> Parser (a -> a -> a) -> Parser a -> (a -> Parser a) -> Parser a
-rest x op p ff = do { f <- op;
+rest :: Parser a -> (a -> Parser a) -> Parser (a -> a -> a) -> a -> Parser a
+rest p ff op x = do { f <- op;
                       y <- p;
                       ff (f x y)
                     }
@@ -70,18 +70,18 @@ rest x op p ff = do { f <- op;
 
 chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
 chainl1 p op = do { x <- p; rest_l x }
-  where rest_l x = rest x op p rest_l
+  where rest_l = rest p rest_l op
 
 chainr1 :: Parser a -> Parser (a -> a -> a) -> Parser a
 chainr1 p op = scan
   where
     scan   = do { x <- p; rest_r x }
-    rest_r x = rest x op scan return
+    rest_r = rest scan return op
 
 name :: String -> Parser String
 name n = do
     s <- some alnum
-    if s == n then return s else empty
+    if s == n then token (return n) else empty
   where
     alnum :: Parser Char
     alnum = satisfy $ \c -> isAlphaNum c || c == '_'
@@ -133,19 +133,19 @@ m_SQRT1_2  = 0.707106781186547524401  -- 1/sqrt(2)
 
 constants :: [Parser Double]
 constants = [
-    def_object "e"        m_E,
-    def_object "log2e"    m_LOG2E,
-    def_object "log10e"   m_LOG10E,
-    def_object "ln2"      m_LN2,
-    def_object "ln10"     m_LN10,
-    def_object "pi"       pi,
-    def_object "pi_2"     m_PI_2,
-    def_object "pi_4"     m_PI_4,
-    def_object "1_pi"     m_1_PI,
-    def_object "2_pi"     m_2_PI,
-    def_object "2_sqrtpi" m_2_SQRTPI,
-    def_object "sqrt2"    m_SQRT2,
-    def_object "sqrt1_2"  m_SQRT1_2
+    def_object "E"        m_E,
+    def_object "LOG2E"    m_LOG2E,
+    def_object "LOG10E"   m_LOG10E,
+    def_object "LN2"      m_LN2,
+    def_object "LN10"     m_LN10,
+    def_object "PI"       pi,
+    def_object "PI_2"     m_PI_2,
+    def_object "PI_4"     m_PI_4,
+    def_object "1_PI"     m_1_PI,
+    def_object "2_PI"     m_2_PI,
+    def_object "2_SQRTPI" m_2_SQRTPI,
+    def_object "SQRT2"    m_SQRT2,
+    def_object "SQRT1_2"  m_SQRT1_2
   ]
 
 _const :: Parser Double
@@ -153,7 +153,6 @@ _const = foldl1 (<|>) constants
 
 op2 :: Char -> (Double -> Double -> Double) -> Parser (Double -> Double -> Double)
 op2 c f = symbol c >> return f
--- op2 c f = const f <$> symbol c
 
 expr :: Parser Double
 expr = term `chainl1` (add <|> sub) where

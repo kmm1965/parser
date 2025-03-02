@@ -42,6 +42,14 @@ public class Parser<A> {
         return new Parser<>(inp -> parse(inp).flatMap(pair -> f.apply(pair.getKey()).parse(pair.getValue())));
     }
 
+    public <B> Parser<B> skip(Parser<B> p){
+        return flatMap(a -> p);
+    }
+
+    public <B> Parser<B> skip(Supplier<Parser<B>> fp){
+        return flatMap(a -> fp.get());
+    }
+
     // Alternative
     public static <A> Parser<A> empty(){
         return new Parser<>(inp -> Optional.empty());
@@ -67,54 +75,48 @@ public class Parser<A> {
         return anyChar.flatMap(c -> f.test(c) ? Parser.pure(c) : Parser.empty());
     }
 
-    public final static Parser<Character> digit = satisfy(Character::isDigit);
-
     public final static Parser<Character> alnum = satisfy(c -> Character.isLetterOrDigit(c) || c == '_');
+
+    public final static Parser<String> spaces = satisfy(Character::isWhitespace).many();
+
+    public Parser<A> token(){
+        return spaces.skip(this).flatMap(a -> spaces.skip(Parser.pure(a)));
+    }
 
     public static Parser<Character> symbol(char x){
         return satisfy(c -> c == x).token();
     }
 
-    public final static Parser<String> spaces = satisfy(Character::isWhitespace).many();
-
-    public Parser<A> token(){
-        return spaces.flatMap(s -> flatMap(a -> spaces.flatMap(s2 -> Parser.pure(a))));
+    public static Parser<String> name(String n){
+        return alnum.some().flatMap(s -> s.equals(n) ? pure(s).token() : empty());
     }
 
-    public final static Parser<Double> natural = digit.some().flatMap(s -> Parser.pure(Double.valueOf(s))).token();
+    public final static Parser<Double> natural = satisfy(Character::isDigit).some()
+        .flatMap(s -> Parser.pure(Double.valueOf(s)).token());
 
-    public static Parser<String> _name(String n){
-        return alnum.some().flatMap(s -> s.equals(n) ? pure(s) : empty());
-    }
-
-    private static <A> Parser<A> rest(A a, Parser<BinaryOperator<A>> op, Supplier<Parser<A>> fval, Function<A, Parser<A>> ff){
+    private static <A> Parser<A> rest(Supplier<Parser<A>> fval, Function<A, Parser<A>> ff, Parser<BinaryOperator<A>> op, A a){
         return op
             .flatMap(f -> fval.get().flatMap(b -> ff.apply(f.apply(a, b))))
             .orElse(Parser.pure(a));
     }
 
-    public Parser<A> rest_l(A a, Parser<BinaryOperator<A>> op){
-        return rest(a, op, () -> this, b -> rest_l(b, op));
+    public Parser<A> rest_l(Parser<BinaryOperator<A>> op, A a){
+        return rest(() -> this, b -> rest_l(op, b), op, a);
+    }
+
+    public Parser<A> rest_r(Parser<BinaryOperator<A>> op, A a){
+        return rest(() ->  chainr1(op), Parser::pure, op, a);
     }
 
     public Parser<A> chainl1(Parser<BinaryOperator<A>> op){
-        return flatMap(a -> rest_l(a, op));
-    }
-
-    public Parser<A> scan(Parser<BinaryOperator<A>> op){
-        return flatMap(a -> rest_r(a, op));
-    }
-
-    public Parser<A> rest_r(A a, Parser<BinaryOperator<A>> op){
-        return rest(a, op, () -> scan(op), Parser::pure);
+        return flatMap(a -> rest_l(op, a));
     }
 
     public Parser<A> chainr1(Parser<BinaryOperator<A>> op){
-        return scan(op);
+        return flatMap(a -> rest_r(op, a));
     }
 
-    public static <Open, Close, A> Parser<A> between(Parser<Open> open, Parser<Close> close, Supplier<Parser<A>> fp){
-        return open.flatMap(c1 -> fp.get())
-            .flatMap(e -> close.flatMap(c2 -> Parser.pure(e)));
+    public static <Open, Close, A> Parser<A> between(Parser<Open> open, Parser<Close>close, Supplier<Parser<A>> fp){
+        return open.skip(fp).flatMap(x -> close.skip(Parser.pure(x)));
     }
 }
