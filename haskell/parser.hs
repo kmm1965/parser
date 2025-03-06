@@ -1,4 +1,4 @@
-import Data.Char (isSpace, isAlphaNum)
+import Data.Char (isSpace, isAlphaNum, isDigit)
 import Control.Applicative -- Alternative
 import Numeric (readFloat)
 
@@ -37,9 +37,12 @@ anyChar = P $ \inp -> case inp of
     (x:xs) -> Just (x, xs)
   
 satisfy :: (Char -> Bool) -> Parser Char
-satisfy f = do
+satisfy pred = do
     x <- anyChar
-    if f x then return x else empty
+    if pred x then return x else empty
+
+char :: Char -> Parser Char
+char c = satisfy (== c)
 
 spaces :: Parser String
 spaces = many $ satisfy isSpace
@@ -50,16 +53,40 @@ token p = do
     spaces; return q
 
 symbol :: Char -> Parser Char
-symbol c = token (char c) where
-    char :: Char -> Parser Char
-    char x = satisfy (== x)
+symbol c = token $ char c
 
-list2Maybe :: [a] -> Maybe a
-list2Maybe []  = Nothing
-list2Maybe [x] = Just x
+optional_s :: Parser String -> Parser String
+optional_s p = p <|> pure ""
+
+optional_c :: Parser Char -> Parser String
+optional_c p = optional_s $ (\c -> [c]) <$> p
+
+digits :: Parser String
+digits = many $ satisfy isDigit
+
+sign :: Parser String
+sign = optional_c $ char '+' <|> char '-'
 
 double :: Parser Double
-double = token (P (list2Maybe . readFloat))
+double = token $ do
+    sign_part <- sign
+    int_part  <- digits
+    frac_part <- optional_s $ char '.' >> digits
+    exp_part  <- optional_s $ do
+        exp_sign   <- (char 'e' <|> char 'E') >> sign
+        exp_digits <- some $ satisfy isDigit
+        return $ exp_sign ++ exp_digits
+    if length int_part > 0 || length frac_part > 0
+        then return $ read $ sign_part ++ int_part ++
+            (if length frac_part > 0 then '.':frac_part else "") ++
+            (if length exp_part > 0 then 'e':exp_part else "")
+        else empty
+
+-- list2Maybe :: [a] -> Maybe a
+-- list2Maybe []  = Nothing
+-- list2Maybe [x] = Just x
+
+-- double = token $ P (list2Maybe . readFloat)
     
 rest :: Parser a -> (a -> Parser a) -> Parser (a -> a -> a) -> a -> Parser a
 rest p ff op x = do { f <- op;
@@ -79,12 +106,9 @@ chainr1 p op = scan
     rest_r = rest scan return op
 
 name :: String -> Parser String
-name n = do
-    s <- some alnum
-    if s == n then token (return n) else empty
-  where
-    alnum :: Parser Char
-    alnum = satisfy $ \c -> isAlphaNum c || c == '_'
+name n = token $ do
+    s <- some $ satisfy $ \c -> isAlphaNum c || c == '_'
+    if s == n then return n else empty
 
 between :: Parser open -> Parser close -> Parser a -> Parser a
 between open close p = do

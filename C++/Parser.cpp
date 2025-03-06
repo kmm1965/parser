@@ -35,6 +35,11 @@ using binary_function = std::function<T(T, T)>;
 template<typename T>
 using predicate = std::function<bool(T)>;
 
+template<typename A>
+std::optional<A> operator|(std::optional<A> const& p, supplier<std::optional<A> > const& q){
+    return p.or_else(q);
+}
+
 template<typename T>
 using parser_pair = std::pair<T, std::string>;
 
@@ -49,10 +54,10 @@ struct Parser {
     using function_t = std::function<result_t(std::string const&)>;
     using bin_func_t = binary_function<A>;
 
-    Parser(function_t const& p) : p(p){}
+    Parser(function_t const& unp) : unp(unp){}
 
     result_t parse(std::string const& inp) const {
-        return p(inp);
+        return unp(inp);
     }
 
     /*
@@ -112,29 +117,18 @@ struct Parser {
         return Parser([](std::string const&){ return result_t(); });
     }
 
-    Parser or_else(Parser const& p) const
-    {
-        Parser const self(*this);
-        return Parser([self, p](std::string const& inp){
-            return self.parse(inp).or_else([&p, &inp](){
-                return p.parse(inp); // f is invoked only if parse failed.
-            });
-        });
-    }
-
     Parser<std::string> some() const;
     Parser<std::string> many() const;
 
     Parser token() const;
 
-    Parser rest_l(A a, Parser<bin_func_t> const& op) const;
+    Parser rest_l(Parser<bin_func_t> const& op, A const& a) const;
+    Parser rest_r(Parser<bin_func_t> const& op, A const& a) const;
     Parser chainl1(Parser<bin_func_t> const& op) const;
-    Parser scan(Parser<bin_func_t> const& op) const;
-    Parser rest_r(A a, Parser<bin_func_t> const& op) const;
     Parser chainr1(Parser<bin_func_t> const& op) const;
 
 private:
-    function_t p;
+    function_t unp;
 };
 
 // Functor
@@ -197,7 +191,11 @@ Parser<B> operator*(Parser<std::function<B(A)> > const& pf, supplier<Parser<A> >
 // Alternative
 template<typename A>
 Parser<A> operator|(Parser<A> const& p, Parser<A> const& q){
-    return p.or_else(q);
+    return Parser<A>([p, q](std::string const& inp){
+        return p.parse(inp) | _([&q, &inp](){
+            return q.parse(inp); // q.parse is invoked only if p.parse failed.
+        });
+    });
 }
 
 /*
@@ -211,6 +209,10 @@ many :: Alternative f => f a -> f [a]
 many v = some v <|> pure []
 */
 
+Parser<std::string> optional(Parser<std::string> const& p){
+    return p | Parser<std::string>::pure(std::string());
+}
+
 template<typename A>
 Parser<std::string> Parser<A>::some() const {
     static_assert(std::is_same_v<A, char>);
@@ -222,8 +224,7 @@ Parser<std::string> Parser<A>::some() const {
 
 template<typename A>
 Parser<std::string> Parser<A>::many() const {
-    static_assert(std::is_same_v<A, char>);
-    return some() | Parser<std::string>::pure(std::string());
+    return optional(some());
 }
 
 Parser<char> const anyChar([](std::string const& inp){
@@ -238,10 +239,6 @@ Parser<char> satisfy(predicate<char> const& f){
 
 Parser<char> const alnum = satisfy([](char c){ return (bool)std::isalnum(c) || c == '_'; });
 
-Parser<char> symbol(char x){
-    return satisfy([x](char c){ return c == x; }).token();
-}
-
 Parser<std::string> const spaces = satisfy([](char c){ return (bool)std::isspace(c); }).many();
 
 template<typename A>
@@ -250,17 +247,21 @@ Parser<A> Parser<A>::token() const {
                   spaces >> pure(a));
 }
 
+Parser<char> symbol(char x){
+    return satisfy([x](char c){ return c == x; }).token();
+}
+
 Parser<double> const _double = Parser<double>([](std::string const& inp)
-    {
-        char *end = nullptr;
-        double const d = std::strtod(inp.c_str(), &end);
-        return !end || end == inp.c_str() || errno == ERANGE ?
-            Parser<double>::result_t() :
-            Parser<double>::result_t(Parser<double>::pair_t(d, end));
-    }).token();
+{
+    char *end = nullptr;
+    double const d = std::strtod(inp.c_str(), &end);
+    return !end || end == inp.c_str() || errno == ERANGE ?
+        Parser<double>::result_t() :
+        Parser<double>::result_t(Parser<double>::pair_t(d, end));
+}).token();
 
 Parser<std::string> _name(std::string const& n){
-    return _do(s, alnum.some(), s == n ? Parser<std::string>::pure(s) : Parser<std::string>::empty());
+    return _do(s, alnum.some(), s == n ? Parser<std::string>::pure(s) : Parser<std::string>::empty()).token();
 }
 
 /*
@@ -275,20 +276,28 @@ chainl1 p op = do { x <- p; rest x }
 */
 
 template<typename A>
-Parser<A> rest(A x, Parser<binary_function<A> > const& op, supplier<Parser<A> > const& fval, std::function<Parser<A>(A)> ff){
-    return _do2(f, op, y, fval(), ff(f(x, y))) | Parser<A>::pure(x);
+Parser<A> rest(supplier<Parser<A> > const& fval, std::function<Parser<A>(A const&)> ff, Parser<binary_function<A> > const& op, A const& a){
+    return _do2(f, op, b, fval(), ff(f(a, b))) | Parser<A>::pure(a);
 }
 
 template<typename A>
-Parser<A> Parser<A>::rest_l(A x, Parser<bin_func_t> const& op) const {
+Parser<A> Parser<A>::rest_l(Parser<bin_func_t> const& op, A const& a) const
+{
     Parser const self(*this);
-    return rest(x, op, _([self](){ return self; }), _([self, op](A y){ return self.rest_l(y, op); }));
+    return rest(_([self](){ return self; }), _([self, op](A const& b){ return self.rest_l(op, b); }), op, a);
+}
+
+template<typename A>
+Parser<A> Parser<A>::rest_r(Parser<bin_func_t> const& op, A const& a) const
+{
+    Parser const self(*this);
+    return rest(_([self, op](){ return self.chainr1(op); }), _([](A const& b){ return pure(b); }), op, a);
 }
 
 template<typename A>
 Parser<A> Parser<A>::chainl1(Parser<bin_func_t> const& op) const {
     Parser const self(*this);
-    return _do(x, *this, self.rest_l(x, op));
+    return _do(a, *this, self.rest_l(op, a));
 }
 
 /*
@@ -304,20 +313,10 @@ chainr1 p op = scan
           <|> return x
 */
 template<typename A>
-Parser<A> Parser<A>::scan(Parser<bin_func_t> const& op) const {
+Parser<A> Parser<A>::chainr1(Parser<bin_func_t> const& op) const
+{
     Parser const self(*this);
-    return _do(x, *this, self.rest_r(x, op));
-}
-
-template<typename A>
-Parser<A> Parser<A>::rest_r(A x, Parser<bin_func_t> const& op) const {
-    Parser const self(*this);
-    return rest(x, op, _([self, op](){ return self.scan(op); }), _([](A y){ return pure(y); }));
-}
-
-template<typename A>
-Parser<A> Parser<A>::chainr1(Parser<bin_func_t> const& op) const {
-    return scan(op);
+    return _do(a, *this, self.rest_r(op, a));
 }
 
 template<typename Open, typename Close, typename A>
@@ -328,7 +327,7 @@ Parser<A> between(Parser<Open> const& open, Parser<Close> const& close, supplier
                   close >> _([e](){ return Parser<A>::pure(e); }));
 }
 
-class calculator
+class Calculator
 {
 private:
     using bin_func_t = binary_function<double>;
@@ -338,40 +337,6 @@ private:
     using func_t = unary_function<double>;
     using Parser_func = Parser<func_t>;
 
-    Parser_c const
-        br_open  = symbol('('),
-        br_close = symbol(')');
-
-    Parser_d expr_in_brackets() const
-    {
-        calculator const self(*this);
-        return between(br_open, br_close, _([self](){ return self.expr(); }));
-    }
-
-    Parser_d factor0() const
-    {
-        calculator const self(*this);
-        return expr_in_brackets()
-            // make expr_in_brackets lasy
-            | func * _([self](){ return self.expr_in_brackets(); })
-            | _const
-            | _double;
-    }
-
-    Parser_d factor() const {
-        return factor0().chainr1(pow);
-    }
-
-    Parser_d term() const {
-        return factor().chainl1(mul | div);
-    }
-
-public:
-    Parser_d expr() const {
-        return term().chainl1(add | sub);
-    }
-
-private:
     static Parser_f op2(char c, bin_func_t const& f){
         return symbol(c) >> Parser_f::pure(f);
     }
@@ -399,7 +364,7 @@ private:
     #undef FUNC
 
     Parser_func const func = std::reduce(functions.cbegin(), functions.cend(), Parser_func::empty(),
-        [](Parser_func const& f1, Parser_func const& f2){ return f1 | f2; }).token();
+        [](Parser_func const& f1, Parser_func const& f2){ return f1 | f2; });
 
     #define CONST(name) def_object(#name, M_##name)
 
@@ -421,22 +386,58 @@ private:
     #undef CONST
 
     Parser_d const _const  = std::reduce(constants.cbegin(), constants.cend(), Parser_d::empty(),
-        [](Parser_d const& c1, Parser_d const& c2){ return c1 | c2; }).token();
+        [](Parser_d const& c1, Parser_d const& c2){ return c1 | c2; });
+
+    Parser_c const
+        br_open  = symbol('('),
+        br_close = symbol(')');
+
+    Parser_d expr_in_brackets() const
+    {
+        Calculator const self(*this);
+        return between(br_open, br_close, _([self](){ return self.expr(); }));
+    }
+
+    Parser_d factor0() const
+    {
+        Calculator const self(*this);
+        return expr_in_brackets()
+            // make expr_in_brackets lasy
+            | func * _([self](){ return self.expr_in_brackets(); })
+            | _const
+            | _double;
+    }
+
+    Parser_d factor() const {
+        return factor0().chainr1(pow);
+    }
+
+    Parser_d term() const {
+        return factor().chainl1(mul | div);
+    }
+
+public:
+    Parser_d expr() const {
+        return term().chainl1(add | sub);
+    }
 };
 
 int main()
 {
-    std::cout << calculator().expr()
-        .parse("7.21e1 - 7.3 - (1.5 - 2.2) * (-3.3)")
-        //.parse("sqrt(exp(E * sin(2.2 * 2_PI)))")
-        //.parse("sqr(2_PI)")
-        //.parse("sqr(sin(2)) + sqr(cos(2))")
-        //.parse("7-1-2")
-        //.parse("3^2^3")
-        //.parse("E^PI")
-        .transform([](parser_pair<double> const& p)
+    Parser<double> expr = Calculator().expr();
+
+    auto const pair2double = [](parser_pair<double> const& p)
     {
         assert(p.second.empty());
         return p.first;
-    }).value() << std::endl;
+    };
+    std::cout
+        << expr.parse(" 7.21e-1 - 7.3 - (1.5 - 2.2) * (-3.3)").transform(pair2double).value() << std::endl
+        << expr.parse(" sin(2_SQRTPI * sqr(2) - 1)").transform(pair2double).value() << std::endl
+        << expr.parse(" sqrt(exp(E * sin(2.2 * 2_PI)))").transform(pair2double).value() << std::endl
+        << expr.parse("sqr(2_PI)").transform(pair2double).value() << std::endl
+        << expr.parse("sqr( sin (2)) + sqr(cos(1 + 1))").transform(pair2double).value() << std::endl
+        << expr.parse("3^2^3").transform(pair2double).value() << std::endl
+        << expr.parse(" E^PI").transform(pair2double).value() << std::endl;
+        
 }

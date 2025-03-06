@@ -88,7 +88,7 @@ namespace MonadParser
             return ExprInBrackets()
                 | Parser<double>.Apply(func, ExprInBrackets)
                 | _const
-                | Parser<double>.natural;
+                | Parser<double>._double;
         }
 
         private static Parser<double> Factor() => Factor0().Chainr1(pow);

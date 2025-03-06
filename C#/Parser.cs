@@ -45,9 +45,13 @@
 
         public static Parser<T> operator |(Parser<T> p, Parser<T> other) => p.OrElse(other);
 
+        public static Parser<string> Optional(Parser<string> p) => p | Parser<string>.Pure("");
+
+        public static Parser<string> Optional(Parser<char> p) => Optional(p.Map(c => c.ToString()));
+
         public Parser<string> Some() => Parser<string>.Apply(Map<Func<string, string>>(c => s => c + s), Many);
 
-        public Parser<string> Many() => Some() | Parser<string>.Pure("");
+        public Parser<string> Many() => Optional(Some());
 
         public static readonly Parser<char> anyChar = new Parser<char>(inp =>
             inp.Length > 0 ?
@@ -55,6 +59,8 @@
                 Maybe<(char, string)>.Empty());
 
         public static Parser<char> Satisfy(Func<char, bool> pred) => anyChar.FlatMap(c => pred(c) ? Parser<char>.Pure(c) : Parser<char>.Empty());
+
+        public static Parser<char> _Char(char c) => Satisfy(c1 => c1 == c);
 
         public static Parser<char> alnum => Satisfy(c => Char.IsLetterOrDigit(c) || c == '_');
 
@@ -64,11 +70,31 @@
 
         public static Parser<char> Symbol(char x) => Satisfy(c => c == x).Token();
 
-        public static Parser<string> Name(string n) => alnum.Some().FlatMap(s => s.Equals(n) ? Parser<string>.Pure(n).Token() : Parser<string>.Empty());
+        public static Parser<string> Name(string n) => alnum.Some()
+            .FlatMap(s => s.Equals(n) ? Parser<string>.Pure(n) : Parser<string>.Empty()).Token();
 
-        public static Parser<double> natural => Satisfy(Char.IsDigit).Some().FlatMap(s => Parser<double>.Pure(double.Parse(s)).Token());
+        private static Parser<string> digits => Satisfy(Char.IsDigit).Many();
 
-        public static Parser<T> Rest(Func<Parser<T>> fval, Func<T, Parser<T>> ff, Parser<Func<T, T, T>> op, T a) =>
+        private static Parser<string> sign => Optional(_Char('+') | _Char('-'));
+
+        //public static Parser<double> _double => Satisfy(Char.IsDigit).Some().FlatMap(s => Parser<double>.Pure(double.Parse(s))).Token();
+        public static Parser<double> _double => sign
+            .FlatMap(sign_part => digits
+            .FlatMap(int_part  => Optional(_Char('.').Skip(digits))
+            .FlatMap(frac_part =>
+                Optional((_Char('e') | _Char('E'))
+                    .Skip(sign)
+                    .FlatMap(exp_sign => Satisfy(Char.IsDigit).Some()
+                    .FlatMap(exp_digits => Parser<string>.Pure(exp_sign + exp_digits)))
+                )
+            .FlatMap(exp_part  => int_part.Length > 0 || frac_part.Length > 0 ?
+                Parser<double>.Pure(double.Parse(
+                    sign_part + int_part +
+                    (frac_part.Length > 0 ? ',' + frac_part : "") +
+                    (exp_part.Length > 0 ? 'e' + exp_part : ""))) :
+                Parser<double>.Empty())))).Token();
+
+        private static Parser<T> Rest(Func<Parser<T>> fval, Func<T, Parser<T>> ff, Parser<Func<T, T, T>> op, T a) =>
             op.FlatMap(f => fval().FlatMap(b => ff(f(a, b)))) | Parser<T>.Pure(a);
 
         public Parser<T> Rest_l(Parser<Func<T, T, T>> op, T a)

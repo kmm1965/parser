@@ -10,7 +10,7 @@ export Parser
 # Correct an error in the Monads module
 mbind(f::Function, m::Maybe)::Maybe = isa(m.value, Nothing) ? Maybe(nothing) : f(m.value)
 
-mbindr(m, f::Function) = mbind(f, m)
+and_then(m, f::Function) = mbind(f, m)
 
 (/)(f::Function, m::Monad) = fmap(f, m)
 
@@ -36,11 +36,11 @@ mreturn(Parser, val)::Parser = Parser(inp::String -> Maybe((val, inp)))
 
 # p >>= f = P $ \inp -> do (x, out) <- my_parse p inp; my_parse (f x) out
 mbind(f::Function, p::Parser)::Parser = Parser(inp ->
-    mbindr(my_parse(p, inp), pair -> my_parse(f(first(pair)), last(pair))))
+    and_then(my_parse(p, inp), pair -> my_parse(f(first(pair)), last(pair))))
 
-fmap(f::Function, p::Parser)::Parser = mbindr(p, x -> mreturn(Parser, f(x)))
+fmap(f::Function, p::Parser)::Parser = and_then(p, x -> mreturn(Parser, f(x)))
 
-(*)(mf::Parser, fp::Function)::Parser = mbindr(mf, f -> f / fp())
+(*)(mf::Parser, fp::Function)::Parser = and_then(mf, f -> f / fp())
 
 # Alternaive for Parser
 # empty = P $ \_ -> Nothing
@@ -51,7 +51,7 @@ empty(::Type{Parser})::Parser = Parser(_ -> Maybe(nothing))
 
 anyChar = Parser(inp -> length(inp) == 0 ? Maybe(nothing) : Maybe((inp[1], inp[2:length(inp)])))
 
-satisfy(f::Function)::Parser = mbindr(anyChar, c -> f(c) ? mreturn(Parser, c) : empty(Parser))
+satisfy(f::Function)::Parser = and_then(anyChar, c -> f(c) ? mreturn(Parser, c) : empty(Parser))
 
 some(p::Parser)::Parser = (c -> s -> c * s) / p * () -> many(p)
 
@@ -60,38 +60,38 @@ many(p::Parser)::Parser = some(p) | mreturn(Parser, "")
 # space = many $ satisfy isSpace
 space = many(satisfy(c::Char -> isspace(c)))
 
-skip(p::Parser, fq::Function)::Parser = mbindr(p, _ -> fq())
+skip(p::Parser, fq::Function)::Parser = and_then(p, _ -> fq())
 
-token(p::Parser)::Parser = mbindr(space >> p, x -> skip(space, () -> mreturn(Parser, x)))
+token(p::Parser)::Parser = and_then(space >> p, x -> skip(space, () -> mreturn(Parser, x)))
 
 char(x::Char)::Parser = satisfy(c::Char -> c == x)
 
 symbol(c::Char)::Parser = token(char(c))
 
-natural = token(mbindr(some(satisfy(c -> isdigit(c))), s -> mreturn(Parser, parse(Float64, s))))
+natural = token(and_then(some(satisfy(c -> isdigit(c))), s -> mreturn(Parser, parse(Float64, s))))
 
 # alnum = satisfy $ \c -> isAlphaNum c || c == '_'
 alnum = satisfy(c -> isletter(c) || isdigit(c) || c == '_')
 
 # name :: String -> Parser String
-name(n::String)::Parser = mbindr(some(alnum), s -> s == n ? mreturn(Parser, n) : empty(Parser))
+name(n::String)::Parser = and_then(some(alnum), s -> s == n ? mreturn(Parser, n) : empty(Parser))
 
 # rest :: Parser a -> (a -> Parser a) -> Parser (a -> a -> a) -> a -> Parser a
 rest(p::Function, ff::Function, op::Parser, a)::Parser =
-    mbindr(op, f::Function -> mbindr(p(), b -> ff(f(a, b)))) | mreturn(Parser, a)
+    and_then(op, f::Function -> and_then(p(), b -> ff(f(a, b)))) | mreturn(Parser, a)
 
 # chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
 function chainl1(p::Parser, op::Parser)::Parser
     # rest_l a = rest p rest_l op a
     rest_l(a) = rest(() -> p, rest_l, op, a)
 
-    mbindr(p, a -> rest_l(a))
+    and_then(p, a -> rest_l(a))
 end
 
 # chainr1 :: Parser a -> Parser (a -> a -> a) -> Parser a
 function chainr1(p::Parser, op::Parser)::Parser
     # scan = do { a <- p; rest_r a }
-    scan() = mbindr(p, a -> rest_r(a))
+    scan() = and_then(p, a -> rest_r(a))
 
     # rest_r a = rest scan return op a
     rest_r(a) = rest(scan, b -> mreturn(Parser, b), op, a)
@@ -100,7 +100,7 @@ function chainr1(p::Parser, op::Parser)::Parser
 end
 
 between(open::Parser, close::Parser, fp::Function)::Parser =
-    mbindr(skip(open, fp), x -> skip(close, () -> mreturn(Parser, x)))
+    and_then(skip(open, fp), x -> skip(close, () -> mreturn(Parser, x)))
 
 op2(c::Char, f::Function)::Parser = skip(symbol(c), () -> mreturn(Parser, f))
 
