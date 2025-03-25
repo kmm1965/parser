@@ -47,10 +47,13 @@ char c = satisfy (== c)
 spaces :: Parser String
 spaces = many $ satisfy isSpace
 
+between :: Parser open -> Parser close -> Parser a -> Parser a
+between open close p = do
+    open;  x <- p
+    close; return x
+
 token :: Parser a -> Parser a
-token p = do
-    spaces; q <- p
-    spaces; return q
+token p = between spaces spaces p
 
 symbol :: Char -> Parser Char
 symbol c = token $ char c
@@ -63,9 +66,6 @@ optional_c p = optional_s $ (\c -> [c]) <$> p
 
 digits :: Parser String
 digits = many $ satisfy isDigit
-
-sign :: Parser String
-sign = optional_c $ char '+' <|> char '-'
 
 double :: Parser Double
 double = token $ do
@@ -81,6 +81,9 @@ double = token $ do
             (if length frac_part > 0 then '.':frac_part else "") ++
             (if length exp_part > 0 then 'e':exp_part else "")
         else empty
+    where
+        sign :: Parser String
+        sign = optional_c $ char '+' <|> char '-'
 
 -- list2Maybe :: [a] -> Maybe a
 -- list2Maybe []  = Nothing
@@ -109,11 +112,6 @@ name :: String -> Parser String
 name n = token $ do
     s <- some $ satisfy $ \c -> isAlphaNum c || c == '_'
     if s == n then return n else empty
-
-between :: Parser open -> Parser close -> Parser a -> Parser a
-between open close p = do
-    open;  x <- p
-    close; return x
 
 sqr :: (Num a) => a -> a
 sqr x = x * x

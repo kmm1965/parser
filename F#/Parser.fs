@@ -1,6 +1,6 @@
 ﻿module Parser
 
-open System
+open System // Char
 open Maybe
 
 type Parser<'A>(unp: string -> Option<'A * string>) =
@@ -28,26 +28,25 @@ type Parser<'A>(unp: string -> Option<'A * string>) =
 
     member this.OrElse (p: Parser<'A>): Parser<'A> = Parser(fun inp -> this.Parse inp <|> fun unit -> p.Parse inp)
 
+    static member Optional_s(p: Parser<string>): Parser<string> = p.OrElse(Parser<string>.Pure(""))
+
+    static member Optional_c(p: Parser<char>): Parser<string> = Parser<string>.Optional_s(p.Map(_.ToString()))
+
     member this.Some unit: Parser<string> =
         ((fun c -> (fun (s: string) -> c.ToString() + s)) |> this.Map |> Parser.Apply) this.Many 
 
-    member this.Many unit: Parser<string> = (this.Some()).OrElse(Parser.Pure "")
+    member this.Many unit: Parser<string> = Parser<string>.Optional_s(this.Some())
 
     static member anyChar: Parser<char> = Parser(fun inp -> if inp.Length > 0 then Some (inp[0], inp.Substring 1) else None)
 
     static member Satisfy(pred: char -> bool): Parser<char> = Parser<char>.anyChar.FlatMap(fun (c: char) -> if pred c then Parser.Pure c else Parser<char>.Empty())
 
-    static member alnum: Parser<char> = Parser<char>.Satisfy(fun c -> Char.IsLetterOrDigit(c) || c.Equals '_')
-
     static member spaces: Parser<string> = Parser<char>.Satisfy(Char.IsWhiteSpace).Many()
 
-    member this.Token unit: Parser<'A> = Parser<string>.spaces.Skip(fun unit -> this).FlatMap(fun a -> Parser<string>.spaces.Skip(fun unit -> Parser.Pure a))
+    static member Between (_open: Parser<'Open>) (_close: Parser<'Close>) (fp: unit -> Parser<'A>): Parser<'A> =
+        _open.Skip(fp).FlatMap(fun a -> _close.Skip(Parser.Pure(a)))
 
-    static member Symbol(x: char): Parser<char> = Parser<char>.Satisfy(_.Equals(x)).Token()
-
-    static member Name (n: string): Parser<string> = Parser<char>.alnum.Some().FlatMap(fun s -> if s.Equals(n) then Parser.Pure(n) else Parser<string>.Empty()).Token()
-
-    static member natural: Parser<float> = (Parser<char>.Satisfy Char.IsDigit).Some().FlatMap(fun (s: string) -> Parser.Pure(Double.Parse s)).Token()
+    member this.Token unit: Parser<'A> = Parser<'A>.Between Parser<string>.spaces Parser<string>.spaces (fun unit -> this)
 
     static member Rest (fval: unit -> Parser<'A>) (ff: 'A -> Parser<'A>) (op: Parser<'A -> 'A -> 'A>) (a: 'A): Parser<'A> =
         op.FlatMap(fun f -> fval().FlatMap(fun b -> ff(f a b)))
@@ -60,6 +59,3 @@ type Parser<'A>(unp: string -> Option<'A * string>) =
     member this.Chainl1 (op: Parser<'A -> 'A -> 'A>): Parser<'A> = this.FlatMap (this.Rest_l op)
 
     member this.Chainr1 (op: Parser<'A -> 'A -> 'A>): Parser<'A> = this.FlatMap (this.Rest_r op)
-
-    static member Between (_open: Parser<'Open>) (_close: Parser<'Close>) (fp: unit -> Parser<'A>): Parser<'A> =
-        _open.Skip(fp).FlatMap(fun a -> _close.Skip(Parser.Pure(a)))

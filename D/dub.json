@@ -1,0 +1,12 @@
+{
+	"authors": [
+		"Mikhail Krasnov"
+	],
+	"copyright": "Copyright © 2025, Mikhail Krasnov",
+	"dependencies": {
+		"optional": "~>1.3.0"
+	},
+	"description": "A monadic parser with a calculator",
+	"license": "proprietary",
+	"name": "parser"
+}

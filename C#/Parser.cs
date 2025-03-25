@@ -2,14 +2,14 @@
 {
     public class Parser<T>
     {
-        private readonly Func<string, Maybe<(T, string)>> unp;
+        private readonly Func<string, Maybe<(T, string)>> fun;
 
-        public Parser(Func<string, Maybe<(T, string)>> unp)
+        public Parser(Func<string, Maybe<(T, string)>> fun)
         {
-            this.unp = unp;
+            this.fun = fun;
         }
 
-        public Maybe<(T, string)> Parse(string inp) => unp(inp);
+        public Maybe<(T, string)> Parse(string inp) => fun(inp);
 
         // Functor
         public Parser<TResult> Map<TResult>(Func<T, TResult> mapping)
@@ -60,39 +60,15 @@
 
         public static Parser<char> Satisfy(Func<char, bool> pred) => anyChar.FlatMap(c => pred(c) ? Parser<char>.Pure(c) : Parser<char>.Empty());
 
-        public static Parser<char> _Char(char c) => Satisfy(c1 => c1 == c);
-
-        public static Parser<char> alnum => Satisfy(c => Char.IsLetterOrDigit(c) || c == '_');
-
         public static Parser<string> spaces => Satisfy(Char.IsWhiteSpace).Many();
 
-        public Parser<T> Token() => spaces.Skip(this).FlatMap(a => spaces.Skip(Parser<T>.Pure(a)));
+        public static Parser<T> Between<Open, Close>(Parser<Open> open, Parser<Close> close, Parser<T> p) =>
+            open.Skip(p).FlatMap(e => close.Skip(Parser<T>.Pure(e)));
 
-        public static Parser<char> Symbol(char x) => Satisfy(c => c == x).Token();
+        public static Parser<T> Between<Open, Close>(Parser<Open> open, Parser<Close> close, Func<Parser<T>> fp) =>
+            open.Skip(fp).FlatMap(e => close.Skip(Parser<T>.Pure(e)));
 
-        public static Parser<string> Name(string n) => alnum.Some()
-            .FlatMap(s => s.Equals(n) ? Parser<string>.Pure(n) : Parser<string>.Empty()).Token();
-
-        private static Parser<string> digits => Satisfy(Char.IsDigit).Many();
-
-        private static Parser<string> sign => Optional(_Char('+') | _Char('-'));
-
-        //public static Parser<double> _double => Satisfy(Char.IsDigit).Some().FlatMap(s => Parser<double>.Pure(double.Parse(s))).Token();
-        public static Parser<double> _double => sign
-            .FlatMap(sign_part => digits
-            .FlatMap(int_part  => Optional(_Char('.').Skip(digits))
-            .FlatMap(frac_part =>
-                Optional((_Char('e') | _Char('E'))
-                    .Skip(sign)
-                    .FlatMap(exp_sign => Satisfy(Char.IsDigit).Some()
-                    .FlatMap(exp_digits => Parser<string>.Pure(exp_sign + exp_digits)))
-                )
-            .FlatMap(exp_part  => int_part.Length > 0 || frac_part.Length > 0 ?
-                Parser<double>.Pure(double.Parse(
-                    sign_part + int_part +
-                    (frac_part.Length > 0 ? ',' + frac_part : "") +
-                    (exp_part.Length > 0 ? 'e' + exp_part : ""))) :
-                Parser<double>.Empty())))).Token();
+        public Parser<T> Token() => Between(spaces, spaces, this);
 
         private static Parser<T> Rest(Func<Parser<T>> fval, Func<T, Parser<T>> ff, Parser<Func<T, T, T>> op, T a) =>
             op.FlatMap(f => fval().FlatMap(b => ff(f(a, b)))) | Parser<T>.Pure(a);
@@ -112,8 +88,5 @@
         public Parser<T> Chainl1(Parser<Func<T, T, T>> op) => FlatMap(a => Rest_l(op, a));
 
         public Parser<T> Chainr1(Parser<Func<T, T, T>> op) => FlatMap(a => Rest_r(op, a));
-
-        public static Parser<T> Between<Open, Close>(Parser<Open> open, Parser<Close> close, Func<Parser<T>> fp) =>
-            open.Skip(fp).FlatMap(e => close.Skip(Parser<T>.Pure(e)));
     }
 }

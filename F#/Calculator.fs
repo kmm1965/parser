@@ -2,12 +2,13 @@
 
 open System
 open Parser
+open SomeParsers
 
 let Sqr x = x * x
 
 type Calculator(unit) =
     static member Op2 (c: char) (f: float -> float -> float): Parser<float -> float -> float> =
-        Parser<char>.Symbol(c).Skip(fun unit -> Parser.Pure f)
+        SomeParsers.Symbol(c).Skip(fun unit -> Parser.Pure f)
 
     static member add = Calculator.Op2 '+' (fun x y -> x + y)
     static member sub = Calculator.Op2 '-' (fun x y -> x - y)
@@ -15,31 +16,23 @@ type Calculator(unit) =
     static member div = Calculator.Op2 '/' (fun x y -> x / y)
     static member pow = Calculator.Op2 '^' (fun x y -> Math.Pow(x, y))
 
-    static member Fold (parsers: List<Parser<'A>>): Parser<'A> =
-        let mutable p0 = Parser<'A>.Empty()
-        for p in parsers do
-            p0 <- p0.OrElse(p)
-        p0
+    static member DefObject (name: string) (value: 'A): Parser<'A> = SomeParsers.Name(name).Skip(fun unit -> Parser.Pure value)
 
-    static member DefObject (name: string) (value: 'A): Parser<'A> = (Parser<string>.Name name).Skip(fun unit -> Parser.Pure(value))
-
-    static member functions = [
-        Calculator.DefObject "sin"   Math.Sin;
-        Calculator.DefObject "cos"   Math.Cos;
-        Calculator.DefObject "asin"  Math.Asin;
-        Calculator.DefObject "acos"  Math.Acos;
-        Calculator.DefObject "sinh"  Math.Sinh;
-        Calculator.DefObject "cosh"  Math.Cosh;
-        Calculator.DefObject "tan"   Math.Tan;
-        Calculator.DefObject "tanh"  Math.Tanh;
-        Calculator.DefObject "log"   Math.Log;
-        Calculator.DefObject "log10" Math.Log10;
-        Calculator.DefObject "exp"   Math.Exp;
-        Calculator.DefObject "sqrt"  Math.Sqrt;
-        Calculator.DefObject "sqr"   Sqr
-    ]
-
-    static member func: Parser<float -> float> = (Calculator.Fold Calculator.functions)
+    //static member functions = [
+    static member func: Parser<float -> float> = 
+        (        Calculator.DefObject "sin"   Math.Sin)
+         .OrElse(Calculator.DefObject "cos"   Math.Cos)
+         .OrElse(Calculator.DefObject "asin"  Math.Asin)
+         .OrElse(Calculator.DefObject "acos"  Math.Acos)
+         .OrElse(Calculator.DefObject "sinh"  Math.Sinh)
+         .OrElse(Calculator.DefObject "cosh"  Math.Cosh)
+         .OrElse(Calculator.DefObject "tan"   Math.Tan)
+         .OrElse(Calculator.DefObject "tanh"  Math.Tanh)
+         .OrElse(Calculator.DefObject "log"   Math.Log)
+         .OrElse(Calculator.DefObject "log10" Math.Log10)
+         .OrElse(Calculator.DefObject "exp"   Math.Exp)
+         .OrElse(Calculator.DefObject "sqrt"  Math.Sqrt)
+         .OrElse(Calculator.DefObject "sqr"   Sqr)
 
     static member M_LOG2E:float    = 1.44269504088896340736  // log2(e)
     static member M_LOG10E:float   = 0.434294481903251827651 // log10(e)
@@ -53,26 +46,23 @@ type Calculator(unit) =
     static member M_SQRT2:float    = 1.41421356237309504880  // sqrt(2)
     static member M_SQRT1_2:float  = 0.707106781186547524401 // 1/sqrt(2)
 
-    static member constants = [
-        Calculator.DefObject "E"        Math.E;
-        Calculator.DefObject "PI"       Math.PI;
-        Calculator.DefObject "LOG2E"    Calculator.M_LOG2E;
-        Calculator.DefObject "LOG10E"   Calculator.M_LOG10E;
-        Calculator.DefObject "LN2"      Calculator.M_LN2;
-        Calculator.DefObject "LN10"     Calculator.M_LN10;
-        Calculator.DefObject "PI_2"     Calculator.M_PI_2;
-        Calculator.DefObject "PI_4"     Calculator.M_PI_4;
-        Calculator.DefObject "1_PI"     Calculator.M_1_PI;
-        Calculator.DefObject "2_PI"     Calculator.M_2_PI;
-        Calculator.DefObject "2_SQRTPI" Calculator.M_2_SQRTPI;
-        Calculator.DefObject "SQRT2"    Calculator.M_SQRT2;
-        Calculator.DefObject "SQRT1_2"  Calculator.M_SQRT1_2
-    ]
+    static member _const: Parser<float> = 
+        (        Calculator.DefObject "E"        Math.E)
+         .OrElse(Calculator.DefObject "PI"       Math.PI)
+         .OrElse(Calculator.DefObject "LOG2E"    Calculator.M_LOG2E)
+         .OrElse(Calculator.DefObject "LOG10E"   Calculator.M_LOG10E)
+         .OrElse(Calculator.DefObject "LN2"      Calculator.M_LN2)
+         .OrElse(Calculator.DefObject "LN10"     Calculator.M_LN10)
+         .OrElse(Calculator.DefObject "PI_2"     Calculator.M_PI_2)
+         .OrElse(Calculator.DefObject "PI_4"     Calculator.M_PI_4)
+         .OrElse(Calculator.DefObject "1_PI"     Calculator.M_1_PI)
+         .OrElse(Calculator.DefObject "2_PI"     Calculator.M_2_PI)
+         .OrElse(Calculator.DefObject "2_SQRTPI" Calculator.M_2_SQRTPI)
+         .OrElse(Calculator.DefObject "SQRT2"    Calculator.M_SQRT2)
+         .OrElse(Calculator.DefObject "SQRT1_2"  Calculator.M_SQRT1_2)
 
-    static member _const: Parser<float> = (Calculator.Fold Calculator.constants)
-
-    static member br_open:  Parser<char> = Parser<char>.Symbol('(')
-    static member br_close: Parser<char> = Parser<char>.Symbol(')')
+    static member br_open:  Parser<char> = Symbol '('
+    static member br_close: Parser<char> = Symbol ')'
 
     static member ExprInBrackets unit: Parser<float> = Parser<float>.Between Calculator.br_open Calculator.br_close Calculator.Expr
 
@@ -80,7 +70,7 @@ type Calculator(unit) =
         Calculator.ExprInBrackets()
             .OrElse(Parser.Apply Calculator.func Calculator.ExprInBrackets)
             .OrElse(Calculator._const)
-            .OrElse(Parser<float>.natural)
+            .OrElse(double)
 
     static member Factor unit: Parser<float> = Calculator.Factor0().Chainr1 Calculator.pow
 
