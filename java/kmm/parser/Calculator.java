@@ -91,11 +91,8 @@ public class Calculator {
             def_object("SQRT2",    M_SQRT2)).orElse(
             def_object("SQRT1_2",  M_SQRT1_2)).token();
 
-    private static final Parser<Character> br_open  = SomeParsers.symbol('(');
-    private static final Parser<Character> br_close = SomeParsers.symbol(')');
-
     private static Parser<Double> expr_in_brackets(){
-        return Parser.between(br_open, br_close, Calculator::expr);
+        return Parser.between(SomeParsers.symbol('('), SomeParsers.symbol(')'), Calculator::expr);
     }
 
     private static Parser<Double> factor0(){

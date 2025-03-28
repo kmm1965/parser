@@ -75,6 +75,18 @@ unittest {
     assert(sign.parse("-abc") == Just(tuple("-", "abc")));
 }
 
+Parser!string digits() pure {
+    import std.ascii: isDigit;
+    return satisfy!(c => isDigit(c)).many;
+}
+
+@("digits unit test")
+unittest {
+    assert(digits.parse("123abc") == Just(tuple("123", "abc")));
+    assert(digits.parse("123  abc") == Just(tuple("123", "  abc")));
+    assert(digits.parse("abc") == Just(tuple("", "abc")));
+}
+
 Parser!double _double() pure {
     import std.ascii: isDigit;
     import std.conv: to;

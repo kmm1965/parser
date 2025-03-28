@@ -60,12 +60,8 @@ private:
 
     #undef CONST
 
-    Parser_c const
-        br_open  = symbol('('),
-        br_close = symbol(')');
-
     Parser_d expr_in_brackets() const {
-        return between(br_open, br_close, _([self = *this](){ return self.expr(); }));
+        return between(symbol('('), symbol(')'), _([self = *this](){ return self.expr(); }));
     }
 
     Parser_d factor0() const {

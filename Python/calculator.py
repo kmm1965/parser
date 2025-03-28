@@ -10,11 +10,8 @@ class Calculator(object):
     def __init__(self):
         pass
 
-    br_open  = symbol('(')
-    br_close = symbol(')')
-
     def expr_in_brackets(self) -> Parser[float]:
-        return between(self.br_open, self.br_close, self.expr)
+        return between(symbol('('), symbol(')'), self.expr)
     
     def factor0(self) -> Parser[float]:
         return self.expr_in_brackets() | \

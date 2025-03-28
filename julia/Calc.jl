@@ -61,7 +61,6 @@ _const =
     def_object("SQRT2",    m_SQRT2)    |
     def_object("SQRT1_2",  m_SQRT1_2)
 
-# expr :: Parser Double
 expr()::Parser = chainl1(term(), add | sub)
 term()::Parser = chainl1(factor(), mul | div)
 factor()::Parser = chainr1(factor0(), pow)

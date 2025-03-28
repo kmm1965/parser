@@ -191,10 +191,7 @@ factor0 = expr_in_brackets
     <|> func <*> expr_in_brackets
     <|> _const
     <|> double
-  where
-    expr_in_brackets = between br_open br_close expr
-    br_open  = symbol '('
-    br_close = symbol ')'
+  where expr_in_brackets = between (symbol '(') (symbol ')') expr
 
 factor :: Parser Double
 factor = factor0 `chainr1` pow where

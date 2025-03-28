@@ -58,11 +58,8 @@
             DefObject("SQRT2",    M_SQRT2)    |
             DefObject("SQRT1_2",  M_SQRT1_2);
 
-        private static readonly Parser<char> br_open = SomeParsers.Symbol('(');
-        private static readonly Parser<char> br_close = SomeParsers.Symbol(')');
-
         private static Parser<double> ExprInBrackets(){
-            return Parser<double>.Between(br_open, br_close, Expr);
+            return Parser<double>.Between(SomeParsers.Symbol('('), SomeParsers.Symbol(')'), Expr);
         }
 
         private static Parser<double> Factor0(){

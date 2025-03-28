@@ -61,10 +61,7 @@ type Calculator(unit) =
          .OrElse(Calculator.DefObject "SQRT2"    Calculator.M_SQRT2)
          .OrElse(Calculator.DefObject "SQRT1_2"  Calculator.M_SQRT1_2)
 
-    static member br_open:  Parser<char> = Symbol '('
-    static member br_close: Parser<char> = Symbol ')'
-
-    static member ExprInBrackets unit: Parser<float> = Parser<float>.Between Calculator.br_open Calculator.br_close Calculator.Expr
+    static member ExprInBrackets unit: Parser<float> = Parser<float>.Between (Symbol '(') (Symbol ')') Calculator.Expr
 
     static member Factor0 unit: Parser<float> =
         Calculator.ExprInBrackets()
