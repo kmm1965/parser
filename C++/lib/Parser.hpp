@@ -1,41 +1,14 @@
 #pragma once
 
-#include <functional>
-#include <optional>
+#include "Maybe.hpp"
+
 #include <string>
-
-template<typename F>
-auto _(F const& f){
-    return std::function(f);
-}
-
-template<typename T>
-auto _(T(*f)(T)){
-    return std::function(f);
-}
-
-template<typename T>
-using supplier = std::function<T()>;
-
-template<typename T>
-using unary_function = std::function<T(T)>;
-
-template<typename T>
-using binary_function = std::function<T(T, T)>;
-
-template<typename T>
-using predicate = std::function<bool(T)>;
-
-template<typename A>
-std::optional<A> operator|(std::optional<A> const& p, supplier<std::optional<A> > const& q){
-    return p.or_else(q);
-}
 
 template<typename T>
 using parser_pair = std::pair<T, std::string>;
 
 template<typename T>
-using parser_data = std::optional<parser_pair<T> >;
+using parser_data = Maybe<parser_pair<T> >;
 
 template<typename A>
 struct Parser {
@@ -63,6 +36,11 @@ struct Parser {
         });
     }
 
+    template<typename B>
+    Parser<B> transform(std::function<B(A)> const& f) const {
+        return transform(_([f](A const& a){ return f(a); }));
+    }
+
     /*
     instance Applicative Parser where
         pure :: a -> Parser a
@@ -70,7 +48,7 @@ struct Parser {
     */
     static Parser pure(A const& a){
         return Parser([a](std::string const& inp){
-            return result_t(pair_t(a, inp));
+            return Just(pair_t(a, inp));
         });
     }
 
@@ -88,6 +66,11 @@ struct Parser {
         });
     }
 
+    template<typename B>
+    Parser<B> and_then(std::function<Parser<B>(A)> const& f) const {
+        return and_then(_([f](A const& a){ return f(a); }));
+    }
+
     /*
     instance Alternative Parser where
         -- The identity of '<|>'
@@ -99,7 +82,7 @@ struct Parser {
         p <|> q = P (\inp -> parse p inp <|> parse q inp)
     */
     static Parser empty(){
-        return Parser([](std::string const&){ return result_t(); });
+        return Parser([](std::string const&){ return Nothing; });
     }
 
     Parser<std::string> some() const;
@@ -143,13 +126,18 @@ Parser<B> operator>>=(Parser<A> const& p, std::function<Parser<B>(A const&)> con
 }
 
 template<typename A, typename B>
-Parser<B> operator>>(Parser<A> const& p, Parser<B> const& q){
-    return p >>= _([q](A const&){ return q; });
+Parser<B> operator>>=(Parser<A> const& p, std::function<Parser<B>(A)> const& f){
+    return p.and_then(f);
 }
 
 template<typename A, typename B>
 Parser<B> operator>>(Parser<A> const& p, supplier<Parser<B> > const& q){
     return p >>= _([q](A const&){ return q(); });
+}
+
+template<typename A, typename B>
+Parser<B> operator>>(Parser<A> const& p, Parser<B> const& q){
+    return p >> _([q](){ return q; });
 }
 
 #define _do(var, mexpr, expr) \
@@ -174,12 +162,17 @@ Parser<B> operator*(Parser<std::function<B(A)> > const& pf, supplier<Parser<A> >
 
 // Alternative
 template<typename A>
-Parser<A> operator|(Parser<A> const& p, Parser<A> const& q){
+Parser<A> operator|(Parser<A> const& p, supplier<Parser<A> > const& q){
     return Parser<A>([p, q](std::string const& inp){
         return p.parse(inp) | _([&q, &inp](){
-            return q.parse(inp); // q.parse is invoked only if p.parse failed.
+            return q().parse(inp); // q.parse is invoked only if p.parse failed.
         });
     });
+}
+
+template<typename A>
+Parser<A> operator|(Parser<A> const& p, Parser<A> const& q){
+    return p | _([q](){ return q; });
 }
 
 template<typename Open, typename Close, typename A>
@@ -190,7 +183,10 @@ Parser<A> between(Parser<Open> const& open, Parser<Close> const& close, supplier
         close >> _([e](){ return Parser<A>::pure(e); }));
 }
 
+extern Parser<char> const anyChar;
 extern Parser<std::string> const spaces;
+
+Parser<char> satisfy(predicate<char> const& f);
 
 template<typename A>
 Parser<A> Parser<A>::token() const {

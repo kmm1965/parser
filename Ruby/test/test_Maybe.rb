@@ -28,11 +28,12 @@ class TestMaybe < Test::Unit::TestCase
 
     def test_apply
         minus = lambda { |x| lambda { |y| x - y } }
+        lminus = Maybe_liftA2(minus)
 
-        assert_equal(Maybe_liftA2(minus).call(Just(8), Just(3)).value, [5])
-        assert_equal(Maybe_liftA2(minus).call(Nothing, Just(8)).value, [])
-        assert_equal(Maybe_liftA2(minus).call(Just(8), Nothing).value, [])
-        assert_equal(Maybe_liftA2(minus).call(Nothing, Nothing).value, [])
+        assert_equal(lminus.call(Just(8), Just(3)).value, [5])
+        assert_equal(lminus.call(Nothing, Just(8)).value, [])
+        assert_equal(lminus.call(Just(8), Nothing).value, [])
+        assert_equal(lminus.call(Nothing, Nothing).value, [])
 
         assert_equal((Just(8).transform { |x| lambda { |y| x - y } } * Just(3)).value, [5])
         assert_equal((Just(8).transform { |x| lambda { |y| x - y } } * Nothing).value, [])
