@@ -10,4 +10,4 @@ Parser<char> satisfy(predicate<char> const& f) {
     return _do(c, anyChar, f(c) ? Parser<char>::pure(c) : Parser<char>::empty());
 }
 
-Parser<std::string> const spaces = satisfy([](char c) { return (bool)std::isspace(c); }).many();
+Parser<std::string> const spaces = *satisfy([](char c) { return (bool)std::isspace(c); });

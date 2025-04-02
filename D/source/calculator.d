@@ -92,7 +92,7 @@ Parser!double factor0() pure {
     return expr_in_brackets |
            func * (() => expr_in_brackets) |
            _const |
-           _double;
+           double_;
 }
 
 Parser!double expr_in_brackets() pure {

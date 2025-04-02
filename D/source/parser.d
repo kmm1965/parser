@@ -17,6 +17,21 @@ class Parser(T)
         return fun(inp);
     }
 
+    auto opUnary(string op)() const pure
+    {
+        static if(op == "*"){ // many
+            return this.many;
+        } else static if(op == "+"){ // some
+            return this.some;
+        } else static if(op == "-"){ // optional
+            static if(is(T == string))
+                return this.optional_s;
+            else return this.optional_c;
+        } else static if(op == "~"){ // token
+            return this.token;
+        }
+    }
+
     auto opBinaryRight(string op, Func)(Func func) const pure
     {
         static if(op == "/"){ // Functor
@@ -188,6 +203,26 @@ unittest {
     assert(empty_string.parse("abc") == Just(tuple("", "abc")));
 }
 
+Parser!string optional_s(const Parser!string p) pure {
+    return p | empty_string;
+}
+
+Parser!string optional_c(const Parser!char p) pure {
+    import std.conv: to;
+
+    return optional_s(((char c) => c.to!string) / p);
+}
+
+@("optional_s unit test")
+unittest {
+    //assert(name("sin").optional_s.parse(" sin abc") == Just(tuple("sin", "abc")));
+    //assert(name("sin").optional_s.parse("abc") == Just(tuple("", "abc")));
+    assert(char_('1').optional_c.parse("1234") == Just(tuple("1", "234")));
+    assert(char_('1').optional_c.parse("abc") == Just(tuple("", "abc")));
+    assert((-char_('1')).parse("1234") == Just(tuple("1", "234")));
+    assert((-char_('1')).parse("abc") == Just(tuple("", "abc")));
+}
+
 Parser!char satisfy(alias pred)() pure
     if (is (typeof(pred(char.init)) == bool))
 {
@@ -200,17 +235,27 @@ unittest {
     assert(satisfy!(c => c == 'z').parse("abc") == Nothing!(Tuple!(char, string)));
 }
 
-Parser!string some(Parser!char p) pure {
-    return ((char c) => (string s) => c ~ s) / p * (() => many(p));
+Parser!char char_(char c) pure {
+    return satisfy!(x => x == c);
 }
 
-Parser!string many(Parser!char p) pure {
-    return some(p) | empty_string;
+@("char_ unit test")
+unittest {
+    assert(char_('a').parse("abc") == Just(tuple('a', "bc")));
+    assert(char_('z').parse("abc") == Nothing!(Tuple!(char, string)));
+}
+
+Parser!string some(const Parser!char p) pure {
+    return ((char c) => (string s) => c ~ s) / p * (() => *p);
+}
+
+Parser!string many(const Parser!char p) pure {
+    return +p | empty_string;
 }
 
 Parser!string spaces() pure {
     import std.ascii: isWhite;
-    return satisfy!(c => isWhite(c)).many;
+    return *satisfy!(c => isWhite(c));
 }
 
 @("spaces unit test")
@@ -239,7 +284,7 @@ Parser!(ParserTarget!(typeof(invoke(fp)))) between(alias fp, Open, Close)(const 
     return (open >> fp).and_then!(x => close >> Parser_pure(x));
 }
 
-Parser!T token(T)(Parser!T p) pure {
+Parser!T token(T)(const Parser!T p) pure {
     return between!p(spaces, spaces);
 }
 

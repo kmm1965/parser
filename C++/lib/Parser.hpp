@@ -10,6 +10,35 @@ using parser_pair = std::pair<T, std::string>;
 template<typename T>
 using parser_data = Maybe<parser_pair<T> >;
 
+template<typename T>
+struct parser_list
+{
+    using type = std::list<T>;
+};
+
+template<typename T>
+using parser_list_t = typename parser_list<T>::type;
+
+template<>
+struct parser_list<char>
+{
+    using type = std::string;
+};
+
+template<>
+struct parser_list<wchar_t>
+{
+    using type = std::wstring;
+};
+
+template<typename T>
+std::list<T> operator+(T const& x, std::list<T> const& l)
+{
+    parser_list_t<T> result = l;
+    result.push_front(x);
+    return std::move(result);
+}
+
 template<typename A>
 struct Parser {
     using value_type = A;
@@ -85,8 +114,8 @@ struct Parser {
         return Parser([](std::string const&){ return Nothing; });
     }
 
-    Parser<std::string> some() const;
-    Parser<std::string> many() const;
+    Parser<parser_list_t<A> > some() const;
+    Parser<parser_list_t<A> > many() const;
 
     Parser token() const;
 
@@ -193,8 +222,39 @@ Parser<A> Parser<A>::token() const {
     return between(spaces, spaces, _([self = *this](){ return self; }));
 }
 
-inline Parser<std::string> optional_s(Parser<std::string> const& p){
-    return p | Parser<std::string>::pure(std::string());
+template<typename A>
+Parser<A> operator~(Parser<A> const& p){
+    return p.token();
+}
+
+template<typename A>
+inline Parser<parser_list_t<A> > optional_l(Parser<parser_list_t<A> > const& p){
+    return p | Parser<parser_list_t<A> >::pure(parser_list_t<A>());
+}
+
+template<typename A>
+inline Parser<parser_list_t<A> > optional_a(Parser<A> const& p){
+    return optional_l<A>(_([](A const& a){ return parser_list_t<A>{ a }; }) / p);
+}
+
+template<typename A>
+inline Parser<parser_list_t<A> > operator-(Parser<A> const& p){
+    return optional_a(p);
+}
+
+template<typename A>
+inline Parser<parser_list_t<A> > operator-(Parser<parser_list_t<A> > const& p){
+    return optional_l<A>(p);
+}
+
+template<typename A>
+Parser<parser_list_t<A> > operator+(Parser<A> const& p){
+    return p.some();
+}
+
+template<typename A>
+Parser<parser_list_t<A> > operator*(Parser<A> const& p){
+    return p.many();
 }
 
 /*
@@ -209,16 +269,15 @@ many v = some v <|> pure []
 */
 
 template<typename A>
-Parser<std::string> Parser<A>::some() const {
-    static_assert(std::is_same_v<A, char>);
+Parser<parser_list_t<A> > Parser<A>::some() const {
     // make many lasy.
-    return _([](char const& c, std::string const& s){ return std::move(c + s); })
-        / *this * _([self = *this](){ return self.many(); });
+    return _([](A const& x, parser_list_t<A> const& l){ return std::forward<parser_list_t<A>&&>(x + l); })
+        / *this * _([self = *this](){ return *self; });
 }
 
 template<typename A>
-Parser<std::string> Parser<A>::many() const {
-    return optional_s(some());
+Parser<parser_list_t<A> > Parser<A>::many() const {
+    return optional_l<A>(+*this);
 }
 
 /*

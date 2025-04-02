@@ -15,18 +15,8 @@ unittest {
     assert(alnum.parse("!@#$") == Nothing!(Tuple!(char, string)));
 }
 
-Parser!char _char(char c) pure {
-    return satisfy!(x => x == c);
-}
-
-@("_char unit test")
-unittest {
-    assert(_char('a').parse("abc") == Just(tuple('a', "bc")));
-    assert(_char('z').parse("abc") == Nothing!(Tuple!(char, string)));
-}
-
 Parser!char symbol(char c) pure {
-    return _char(c).token;
+    return ~char_(c);
 }
 
 @("symbol unit test")
@@ -36,7 +26,7 @@ unittest {
 }
 
 Parser!string name(string n) pure {
-    return alnum.some.and_then!(s => s == n ? Parser_pure(n) : Parser!string.empty).token;
+    return ~(+alnum).and_then!(s => s == n ? Parser_pure(n) : Parser!string.empty);
 }
 
 @("name unit test")
@@ -46,26 +36,8 @@ unittest {
     assert(name("sin").parse("sinabc") == Nothing!(Tuple!(string, string)));
 }
 
-Parser!string optional_s(const Parser!string p) pure {
-    return p | empty_string;
-}
-
-Parser!string optional_c(const Parser!char p) pure {
-    import std.conv: to;
-
-    return optional_s(((char c) => c.to!string) / p);
-}
-
-@("optional_s unit test")
-unittest {
-    assert(name("sin").optional_s.parse(" sin abc") == Just(tuple("sin", "abc")));
-    assert(name("sin").optional_s.parse("abc") == Just(tuple("", "abc")));
-    assert(_char('1').optional_c.parse("1234") == Just(tuple("1", "234")));
-    assert(_char('1').optional_c.parse("abc") == Just(tuple("", "abc")));
-}
-
 Parser!string sign() pure {
-    return optional_c(_char('+') | _char('-'));
+    return -(char_('+') | char_('-'));
 }
 
 @("sign unit test")
@@ -77,7 +49,7 @@ unittest {
 
 Parser!string digits() pure {
     import std.ascii: isDigit;
-    return satisfy!(c => isDigit(c)).many;
+    return *satisfy!(c => isDigit(c));
 }
 
 @("digits unit test")
@@ -87,42 +59,43 @@ unittest {
     assert(digits.parse("abc") == Just(tuple("", "abc")));
 }
 
-Parser!double _double() pure {
+Parser!double double_() pure {
     import std.ascii: isDigit;
     import std.conv: to;
 
-    return sign.and_then!(
+    return ~sign.and_then!(
         sign_part => digits.and_then!(
-        int_part  => optional_s(_char('.') >> digits).and_then!(
-        frac_part => optional_s(((_char('e') | _char('E')) >> sign).and_then!(
-               exp_sign   => satisfy!(c => isDigit(c)).some.and_then!(
+        int_part  => (-(char_('.') >> digits)).and_then!(
+        frac_part => (-(((char_('e') | char_('E')) >> sign).and_then!(
+               exp_sign   => (+satisfy!(c => isDigit(c))).and_then!(
                exp_digits => Parser_pure(exp_sign ~ exp_digits)
-            ))).and_then!(
+            )))).and_then!(
         exp_part  => int_part.length > 0 || frac_part.length > 0 ?
             Parser_pure((sign_part ~ int_part ~
                 (frac_part.length > 0 ? '.' ~ frac_part : "") ~
                 (exp_part.length > 0 ? 'e' ~ exp_part : "")).to!double) :
             Parser!double.empty
-    )))).token;
+    ))));
 }
 
-@("_double unit test")
+@("double_ unit test")
 unittest {
-    assert(_double.parse(" 1 abc") == Just(tuple(1., "abc")));
-    assert(_double.parse(" 1. abc") == Just(tuple(1., "abc")));
-    assert(_double.parse(" 1.23 abc") == Just(tuple(1.23, "abc")));
-    assert(_double.parse(" .23 abc") == Just(tuple(0.23, "abc")));
-    assert(_double.parse(" +1.23 abc") == Just(tuple(+1.23, "abc")));
-    assert(_double.parse(" -1.23 abc") == Just(tuple(-1.23, "abc")));
-    assert(_double.parse("1.23e10abc") == Just(tuple(1.23e10, "abc")));
-    assert(_double.parse("1.23e-10abc") == Just(tuple(1.23e-10, "abc")));
-    assert(_double.parse("-1.23e-10abc") == Just(tuple(-1.23e-10, "abc")));
-    assert(_double.parse("abc") == Nothing!(Tuple!(double, string)));
+    assert(double_.parse(" 1 abc") == Just(tuple(1., "abc")));
+    assert(double_.parse(" 1. abc") == Just(tuple(1., "abc")));
+    assert(double_.parse(" 1.23 abc") == Just(tuple(1.23, "abc")));
+    assert(double_.parse(" .23 abc") == Just(tuple(0.23, "abc")));
+    assert(double_.parse(" +1.23 abc") == Just(tuple(+1.23, "abc")));
+    assert(double_.parse(" + 1.23 abc") == Nothing!(Tuple!(double, string)));
+    assert(double_.parse(" -1.23 abc") == Just(tuple(-1.23, "abc")));
+    assert(double_.parse("1.23e10abc") == Just(tuple(1.23e10, "abc")));
+    assert(double_.parse("1.23e-10abc") == Just(tuple(1.23e-10, "abc")));
+    assert(double_.parse("-1.23e-10abc") == Just(tuple(-1.23e-10, "abc")));
+    assert(double_.parse("abc") == Nothing!(Tuple!(double, string)));
 }
 
 @("between unit test")
 unittest {
-    auto expr = between!_double(symbol('('), symbol(')'));
+    auto expr = between!double_(symbol('('), symbol(')'));
     assert(expr.parse(" ( 123 ) abc") == Just(tuple(123., "abc")));
     assert(expr.parse(" ( 123 abc") == Nothing!(Tuple!(double, string)));
     assert(expr.parse(" 123 ) abc") == Nothing!(Tuple!(double, string)));
@@ -137,13 +110,13 @@ unittest {
     auto add = symbol('+') >> Parser_pure((double x, double y) => x + y);
     auto sub = symbol('-') >> Parser_pure((double x, double y) => x - y);
     auto pow = symbol('^') >> Parser_pure((double x, double y) => exp(y * log(x)));
-    auto expr = _double.chainl1(add | sub);
+    auto expr = double_.chainl1(add | sub);
 
     assert(expr.parse("7abc") == Just(tuple(7., "abc")));
     assert(expr.parse(" 7 - 1 - 2 abc") == Just(tuple(4., "abc")));
     assert(expr.parse(" 7 - 1 + 2 - 3 abc") == Just(tuple(5., "abc")));
     assert(expr.parse("abc") == Nothing!(Tuple!(double, string)));
 
-    assert(_double.chainr1!double(pow).parse("3 ^ 2 ^ 3 abc")
+    assert(double_.chainr1!double(pow).parse("3 ^ 2 ^ 3 abc")
         .transform!(pair => tuple(round(pair[0]), pair[1])) == Just(tuple(6561., "abc")));
 }

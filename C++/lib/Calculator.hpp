@@ -14,23 +14,20 @@ private:
     using func_t = unary_function<double>;
     using Parser_func = Parser<func_t>;
 
-    static Parser_f op2(char c, bin_func_t const& f){
-        return symbol(c) >> Parser_f::pure(f);
-    }
+    #define OP20(op, func) op##_s >> Parser_f::pure(func)
+    #define OP2(op, name) OP20(op, std::name<double>())
 
     Parser_f const
-        add = op2('+', std::plus<double>()),
-        sub = op2('-', std::minus<double>()),
-        mul = op2('*', std::multiplies<double>()),
-        div = op2('/', std::divides<double>()),
-        pow = op2('^', [](double x, double y){ return std::pow(x, y); });
+        add = OP2('+', plus),
+        sub = OP2('-', minus),
+        mul = OP2('*', multiplies),
+        div = OP2('/', divides),
+        pow = OP20('^', [](double x, double y){ return std::pow(x, y); });
 
-    template<typename A>
-    static Parser<A> def_object(const char* name, A const& value){
-        return _name(name) >> Parser<A>::pure(value);
-    }
+    #undef OP2
+    #undef OP20
 
-    #define FUNC(name) def_object(#name, _<double>(::name))
+    #define FUNC(name) #name##_n >> Parser<func_t>::pure(_<double>(::name))
 
     Parser_func const func =
         FUNC(sin)  | FUNC(cos)  | FUNC(asin)  | FUNC(acos)  |
@@ -40,10 +37,9 @@ private:
 
     #undef FUNC
 
-    #define CONST(name) def_object(#name, M_##name)
+    #define CONST(name) #name##_n >> Parser<double>::pure(M_##name)
 
-    //std::array<Parser_d, 13> const constants {
-    Parser_d const _const =
+    Parser_d const const_ =
         CONST(E)        | // 2.71828182845904523536   // e
         CONST(LOG2E)    | // 1.44269504088896340736   // log2(e)
         CONST(LOG10E)   | // 0.434294481903251827651  // log10(e)
@@ -61,15 +57,14 @@ private:
     #undef CONST
 
     Parser_d expr_in_brackets() const {
-        return between(symbol('('), symbol(')'), _([self = *this](){ return self.expr(); }));
+        return between('('_s, ')'_s, _([self = *this](){ return self.expr(); }));
     }
 
     Parser_d factor0() const {
         return expr_in_brackets()
-            // make expr_in_brackets lasy
             | func * _([self = *this](){ return self.expr_in_brackets(); })
-            | _const
-            | _double;
+            | const_
+            | double_;
     }
 
     Parser_d factor() const {

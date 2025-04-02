@@ -67,9 +67,9 @@ class Parser(Generic[T]):
     def chainr1(self, op: "Parser[Callable[[T, T], T]]") -> "Parser[T]":
         return self.and_then(lambda a: self.rest_r(op, a))
     
-anyChar = Parser(lambda inp: Maybe.empty() if len(inp) == 0 else Maybe.pure((inp[0], inp[1:])))
+anyChar: Parser[str] = Parser(lambda inp: Maybe.empty() if len(inp) == 0 else Maybe.pure((inp[0], inp[1:])))
 
 def satisfy(f: Callable[[str], bool]) -> Parser[str]:
     return anyChar.and_then(lambda c: Parser.pure(c) if f(c) else Parser.empty())
 
-spaces = satisfy(str.isspace).many()
+spaces: Parser[str] = satisfy(str.isspace).many()

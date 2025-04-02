@@ -66,7 +66,7 @@
             return ExprInBrackets()
                 | Parser<double>.Apply(func, ExprInBrackets)
                 | _const
-                | SomeParsers._double;
+                | SomeParsers.double_;
         }
 
         private static Parser<double> Factor() => Factor0().Chainr1(pow);

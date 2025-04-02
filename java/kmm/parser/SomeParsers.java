@@ -3,12 +3,12 @@ package kmm.parser;
 public class SomeParsers {
     public final static Parser<Character> alnum = Parser.satisfy(c -> Character.isLetterOrDigit(c) || c == '_');
 
-    public static Parser<Character> _char(char c){
+    public static Parser<Character> char_(char c){
         return Parser.satisfy(x -> x == c);
     }
 
     public static Parser<Character> symbol(char c){
-        return _char(c).token();
+        return char_(c).token();
     }
 
     public static Parser<String> name(String n){
@@ -25,12 +25,12 @@ public class SomeParsers {
 
     public final static Parser<String> digits = Parser.satisfy(Character::isDigit).many();
 
-    public final static Parser<String> sign = optional_c(_char('+').orElse(_char('-')));
+    public final static Parser<String> sign = optional_c(char_('+').orElse(char_('-')));
 
-    public final static Parser<Double> _double = sign.flatMap(
+    public final static Parser<Double> double_ = sign.flatMap(
         sign_part -> digits.flatMap(
-        int_part  -> optional_s(_char('.').skip(digits)).flatMap(
-        frac_part -> optional_s(_char('e').orElse(_char('E')).skip(sign).flatMap(
+        int_part  -> optional_s(char_('.').skip(digits)).flatMap(
+        frac_part -> optional_s(char_('e').orElse(char_('E')).skip(sign).flatMap(
             exp_sign -> Parser.satisfy(Character::isDigit).some().flatMap(
             exp_digits -> Parser.pure(exp_sign + exp_digits)))).flatMap(
         exp_part -> !int_part.isEmpty() || !frac_part.isEmpty() ?

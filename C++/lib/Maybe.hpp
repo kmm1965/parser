@@ -4,6 +4,7 @@
 
 #include <optional>
 #include <iostream>
+#include <list>
 
 template<typename T>
 using Maybe = std::optional<T>;
@@ -79,6 +80,19 @@ Maybe<A> operator|(Maybe<A> const& p, Maybe<A> const& q){
     return p | _([q](){ return q; });
 }
 
+template<typename A>
+std::ostream& operator<<(std::ostream& os, std::list<A> const& l)
+{
+    os << '[';
+    bool first = true;
+    for(A const& a : l){
+        if(first) first = false;
+        else os << ',';
+        os << a;
+    }
+    return os << ']';
+}
+
 template<typename A, typename B>
 std::ostream& operator<<(std::ostream& os, std::pair<A, B> const& p){
     return os << '[' << p.first << ',' << p.second << ']';
@@ -97,6 +111,20 @@ inline std::ostream& operator<<(std::ostream& os, std::nullopt_t const&){
 
 // Boost Test support
 namespace boost { namespace test_tools { namespace tt_detail {
+
+template<typename A>
+struct BOOST_TEST_DECL print_log_value<std::list<A> >{
+    void operator()(std::ostream& os, std::list<A> const& l){
+        ::operator<<(os, l);
+    }
+};
+
+template<typename A, typename B>
+struct BOOST_TEST_DECL print_log_value<std::pair<A, B> >{
+    void operator()(std::ostream& os, std::pair<A, B> const& p){
+        ::operator<<(os, p);
+    }
+};
 
 template<typename A>
 struct BOOST_TEST_DECL print_log_value<std::optional<A> >{

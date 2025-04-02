@@ -17,7 +17,7 @@
 
         private static string NumberDecimalSeparator = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
 
-        public static Parser<double> _double => sign.FlatMap(
+        public static Parser<double> double_ => sign.FlatMap(
             sign_part => digits.FlatMap(
             int_part  => Parser<char>.Optional(_Char('.').Skip(digits)).FlatMap(
             frac_part => Parser<char>.Optional((_Char('e') | _Char('E')).Skip(sign).FlatMap(

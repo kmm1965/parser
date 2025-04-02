@@ -99,7 +99,7 @@ public class Calculator {
         return expr_in_brackets()
             .orElse(Parser.apply_u(func, Calculator::expr_in_brackets))
             .orElse(_const)
-            .orElse(SomeParsers._double);
+            .orElse(SomeParsers.double_);
     }
 
     private static Parser<Double> factor(){
