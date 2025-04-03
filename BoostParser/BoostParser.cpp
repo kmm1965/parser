@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <functional>
+#include <numeric> // reduce
 
 #include <boost/parser/parser.hpp>
 
@@ -28,7 +29,6 @@ auto const add  = '+' >> bp::attr(_(std::plus<double>()));
 auto const sub  = '-' >> bp::attr(_(std::minus<double>()));
 auto const mul  = '*' >> bp::attr(_(std::multiplies<double>()));
 auto const div_ = '/' >> bp::attr(_(std::divides<double>()));
-auto const pow_ = '^' >> bp::attr(_([](double x, double y){ return std::pow(x, y); }));
 
 #define FUNC(name) #name >> bp::attr(_<double>(::name))
 
@@ -59,27 +59,9 @@ auto const const_ =
 
 #undef CONST_
 
-auto const chainl1 = [](auto const& tp)
-{
-    double val = std::get<0>(tp);
-    for(auto const& op : std::get<1>(tp))
-        val = std::get<0>(op)(val, std::get<1>(op));
-    return val;
-};
-
-auto const chainr1 = [](auto const& tp)
-{
-    double const val0 = std::get<0>(tp);
-    auto const& vec = std::get<1>(tp);
-    if(vec.size() == 0)
-        return val0;
-    binary_function<double> op = std::get<0>(vec.back());
-    double val = std::get<1>(vec.back());
-    for(auto it = vec.crbegin() + 1; it != vec.crend(); ++it){
-        val = op(std::get<1>(*it), val);
-        op = std::get<0>(*it);
-    }
-    return op(val0, val);
+auto const chainl1 = [](auto const& tp){
+    return std::reduce(std::cbegin(std::get<1>(tp)), std::cbegin(std::get<1>(tp)), std::get<0>(tp),
+        [](double val, auto const& op){ return std::get<0>(op)(val, std::get<1>(op)); });
 };
 
 #define DEFINE_RULE(name) bp::rule<struct name##_tag, double> name = #name
@@ -94,10 +76,12 @@ DEFINE_RULE(expr_in_brackets);
 
 auto const expr_def   = bp::transform(chainl1)[term    >> *((add | sub)  >> term)];
 auto const term_def   = bp::transform(chainl1)[factor  >> *((mul | div_) >> factor)];
-auto const factor_def = bp::transform(chainr1)[factor0 >> *(pow_         >> factor0)];
+auto const factor_def = bp::transform([](auto const& vec)
+    { return std::reduce(std::crbegin(vec), std::crend(vec), 1., [](double y, double x){ return std::pow(x, y); }); })
+    [factor0 % '^'];
 auto const factor0_def =
     expr_in_brackets |
-    bp::transform(([](auto const& tp){ return std::get<0>(tp)(std::get<1>(tp)); }))[func >> expr_in_brackets] |
+    bp::transform([](auto const& tp){ return std::get<0>(tp)(std::get<1>(tp)); })[func >> expr_in_brackets] |
     const_ |
     bp::double_;
 auto const expr_in_brackets_def = '(' >> expr > ')';
