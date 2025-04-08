@@ -5,8 +5,8 @@
 #include <numeric> // reduce
 
 #include <boost/parser/parser.hpp>
-
 namespace bp = boost::parser;
+
 inline double sqr(double x){ return x * x; }
 
 template<typename F>
@@ -60,8 +60,11 @@ auto const const_ =
 #undef CONST_
 
 auto const chainl1 = [](auto const& tp){
-    return std::reduce(std::cbegin(std::get<1>(tp)), std::cbegin(std::get<1>(tp)), std::get<0>(tp),
-        [](double val, auto const& op){ return std::get<0>(op)(val, std::get<1>(op)); });
+    if constexpr(std::tuple_size_v<std::decay_t<decltype(tp)> > == 3)
+        return std::reduce(std::cbegin(std::get<2>(tp)), std::cend(std::get<2>(tp)), std::get<0>(tp) == '-' ? -std::get<1>(tp) : std::get<1>(tp),
+            [](double val, auto const& op){ return std::get<0>(op)(val, std::get<1>(op)); });
+    else return std::reduce(std::cbegin(std::get<1>(tp)), std::cend(std::get<1>(tp)), std::get<0>(tp),
+            [](double val, auto const& op){ return std::get<0>(op)(val, std::get<1>(op)); });
 };
 
 #define DEFINE_RULE(name) bp::rule<struct name##_tag, double> name = #name
@@ -74,10 +77,10 @@ DEFINE_RULE(expr_in_brackets);
 
 #undef DEFINE_RULE
 
-auto const expr_def   = bp::transform(chainl1)[term    >> *((add | sub)  >> term)];
-auto const term_def   = bp::transform(chainl1)[factor  >> *((mul | div_) >> factor)];
+auto const expr_def = bp::transform(chainl1)[-(bp::char_('+') | bp::char_('-')) >> term >> *((add | sub) >> term)];
+auto const term_def   = bp::transform(chainl1)[factor >> *((mul | div_) >> factor)];
 auto const factor_def = bp::transform([](auto const& vec)
-    { return std::reduce(std::crbegin(vec), std::crend(vec), 1., [](double y, double x){ return std::pow(x, y); }); })
+    { return std::reduce(std::crbegin(vec) + 1, std::crend(vec), vec.back(), [](double y, double x) { return std::pow(x, y); }); })
     [factor0 % '^'];
 auto const factor0_def =
     expr_in_brackets |
@@ -96,6 +99,10 @@ int main()
         << bp::parse(" sqrt(exp(E * sin(2.2 * 2_PI)))", expr, bp::ws).value() << std::endl
         << bp::parse("sqr(2_PI)", expr, bp::ws).value() << std::endl
         << bp::parse("sqr( sin (2)) + sqr(cos(1 + 1))", expr, bp::ws).value() << std::endl
-        << bp::parse(" 3 ^ 2 ^ 3", expr, bp::ws).value() << std::endl
-        << bp::parse(" E ^ PI", expr, bp::ws).value() << std::endl;
+        << bp::parse(" 3 ^ (1 + 1) ^ 3", expr, bp::ws).value() << std::endl
+        << bp::parse(" E ^ PI", expr, bp::ws).value() << std::endl
+        << bp::parse(" sin(-PI/4) ", expr, bp::ws).value() << std::endl
+        << bp::parse(" sin(+PI/4) ", expr, bp::ws).value() << std::endl
+        << bp::parse("- 2 ^ 2", expr, bp::ws).value() << std::endl
+        ;
 }

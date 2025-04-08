@@ -121,7 +121,7 @@ struct Parser {
 
     Parser rest_l(Parser<bin_func_t> const& op, A const& a) const;
     Parser rest_r(Parser<bin_func_t> const& op, A const& a) const;
-    Parser chainl1(Parser<bin_func_t> const& op) const;
+    Parser chainl1(Parser<bin_func_t> const& op, bool negate_first = false) const;
     Parser chainr1(Parser<bin_func_t> const& op) const;
 
 private:
@@ -307,9 +307,9 @@ Parser<A> Parser<A>::rest_r(Parser<bin_func_t> const& op, A const& a) const {
 }
 
 template<typename A>
-Parser<A> Parser<A>::chainl1(Parser<bin_func_t> const& op) const {
+Parser<A> Parser<A>::chainl1(Parser<bin_func_t> const& op, bool negate_first) const {
     Parser const self = *this;
-    return _do(a, *this, self.rest_l(op, a));
+    return _do(a, *this, self.rest_l(op, negate_first ? -a : a));
 }
 
 /*

@@ -61,8 +61,8 @@ class Parser(Generic[T]):
     def rest_r(self, op: "Parser[Callable[[T, T], T]]", a: T) -> "Parser[T]":
         return Parser.rest(lambda: self.chainr1(op), Parser.pure, op, a)
     
-    def chainl1(self, op: "Parser[Callable[[T, T], T]]") -> "Parser[T]":
-        return self.and_then(lambda a: self.rest_l(op, a))
+    def chainl1(self, op: "Parser[Callable[[T, T], T]]", negate_first: bool) -> "Parser[T]":
+        return self.and_then(lambda a: self.rest_l(op, -a if negate_first else a))
     
     def chainr1(self, op: "Parser[Callable[[T, T], T]]") -> "Parser[T]":
         return self.and_then(lambda a: self.rest_r(op, a))

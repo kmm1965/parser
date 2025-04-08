@@ -4,6 +4,7 @@
 
 extern Parser<char> const alnum;
 extern Parser<double> const double_;
+extern Parser<std::string> sign, usign;
 
 Parser<char> char_(char c);
 Parser<char> symbol(char c);

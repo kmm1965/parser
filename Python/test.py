@@ -9,3 +9,4 @@ print(expr.parse("sin ( 2_SQRTPI * sqr ( 2 ) - 1 )").value)      # -0.3634085731
 print(expr.parse("sqr(sin(2)) + sqr(cos(1 + 1))").value)         # 1.0
 print(expr.parse("E ^ PI").value)                                # 23.140692632779263
 print(expr.parse("PI ^ E").value)                                # 22.45915771836104
+print(expr.parse("sin(-PI/4)").value)                            # -0.7071067811865476

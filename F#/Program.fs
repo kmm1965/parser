@@ -9,5 +9,6 @@ let main argv =
     printfn "%s" (expr.Parse("sin ( 2_SQRTPI * sqr ( 2 ) - 1 )").ToString())
     printfn "%s" (expr.Parse("sqr( sin (2)) + sqr(cos(1 + 1))").ToString())
     printfn "%s" (expr.Parse("3 ^ 2 ^ 3").ToString())
+    printfn "%s" (expr.Parse("sin(-PI/4)").ToString())
 
     0 // return an integer exit code

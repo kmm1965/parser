@@ -25,3 +25,27 @@
         ([_ params body] [lambda params body])
     )
 )
+
+(define-syntax **
+    (syntax-rules ()
+        ((_ p) (many p))
+    )
+)
+
+(define-syntax ++
+    (syntax-rules ()
+        ((_ p) (some p))
+    )
+)
+
+(define-syntax --
+    (syntax-rules ()
+        ((_ p) (optional_c p))
+    )
+)
+
+(define-syntax ---
+    (syntax-rules ()
+        ((_ p) (optional_s p))
+    )
+)

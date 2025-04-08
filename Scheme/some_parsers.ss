@@ -13,31 +13,21 @@
 )
 
 (define (name n)
-    (token (! (some alnum) >>= [\\ (s)
+    (token (! (++ alnum) >>= [\\ (s)
         (if (string=? s n) (Parser_pure n) Parser_empty)
     ]))
 )
 
-(define (optional_s p)
-    (Parser_or_else_get p [\\ () empty_string])
-)
-
-(define (optional_c p)
-    (optional_s
-        (! [\\ (c) (string c)] <$> p)
-    )
-)
-
 (define digits
-    (many (satisfy char-numeric?))
+    (** (satisfy char-numeric?))
 )
 
 (define sign
-    (optional_c (! (char #\+) <||> (char #\-)))
+    (-- (! (char #\+) <||> (char #\-)))
 )
 
 (define double_
-    (token (! (some (satisfy char-numeric?)) >>=
+    (token (! (++ (satisfy char-numeric?)) >>=
         [\\ (s) (Parser_pure (string->number s))]
     ))
 )
@@ -46,12 +36,12 @@
     (token (! sign >>=
         [\\ (sign_part) (! digits >>=
             [\\ (int_part) (!
-                (optional_s (! (char #\.) >> digits)) >>=
+                (--- (! (char #\.) >> digits)) >>=
                 [\\ (frac_part) (!
-                    (optional_s (!
+                    (--- (!
                         (! (! (char #\e) <||> (char #\E)) >> sign) >>=
                         [\\ (exp_sign) (!
-                            (some (satisfy char-numeric?)) >>=
+                            (++ (satisfy char-numeric?)) >>=
                             [\\ (exp_digits)
                                 (Parser_pure (string-append exp_sign exp_digits))
                             ]

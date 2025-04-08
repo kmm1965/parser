@@ -2,6 +2,15 @@
 
 #include "../lib/Calculator.hpp"
 
+BOOST_AUTO_TEST_CASE(test_unary)
+{
+    Parser<double> expr = Calculator().expr();
+
+    BOOST_TEST(expr.parse("-PI") == Just(std::make_pair(-M_PI, ""s)));
+    BOOST_TEST(expr.parse("-2^2") == Just(std::make_pair(-4., ""s)));
+    BOOST_TEST(expr.parse("5+-3") == Just(std::make_pair(5., "+-3"s)));
+}
+
 BOOST_AUTO_TEST_CASE(test_Calculator)
 {
     Parser<double> expr = Calculator().expr();

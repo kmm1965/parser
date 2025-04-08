@@ -27,6 +27,8 @@ public class SomeParsers {
 
     public final static Parser<String> sign = optional_c(char_('+').orElse(char_('-')));
 
+    public final static Parser<String> usign = optional_c(symbol('+').orElse(symbol('-')));
+
     public final static Parser<Double> double_ = sign.flatMap(
         sign_part -> digits.flatMap(
         int_part  -> optional_s(char_('.').skip(digits)).flatMap(

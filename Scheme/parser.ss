@@ -58,10 +58,6 @@
     [\\ (_) Nothing]
 )
 
-(define empty_string
-    (Parser_pure "")
-)
-
 (define (<||> . ps)
     [\\ (inp)
         (fold-left
@@ -98,18 +94,30 @@
     )
 )
 
+(define empty_string
+    (Parser_pure "")
+)
+
+(define (optional_s p)
+    (Parser_or_else_get p [\\ () empty_string])
+)
+
+(define (optional_c p)
+    (optional_s (! [\\ (c) (string c)] <$> p))
+)
+
 (define (some p)
     ((liftA2 [\\ (c) [\\ (s) (string-append (string c) s)]])
-        p [\\ () (many p)]
+        p [\\ () (** p)]
     )
 )
 
 (define (many p)
-    (! (some p) <||> empty_string)
+    (--- (++ p))
 )
 
 (define spaces
-    (many (satisfy char-whitespace?))
+    (** (satisfy char-whitespace?))
 )
 
 (define (between open close fp)

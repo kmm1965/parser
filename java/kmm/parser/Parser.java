@@ -103,8 +103,12 @@ public class Parser<A> {
         return rest(() ->  chainr1(op), Parser::pure, op, a);
     }
 
-    public Parser<A> chainl1(Parser<BinaryOperator<A>> op){
-        return flatMap(a -> rest_l(op, a));
+    public static Parser<Double> chainl1(Parser<Double> self, Parser<BinaryOperator<Double>> op, boolean negate_first){
+        return self.flatMap(a -> self.rest_l(op, negate_first ? -a : a));
+    }
+
+    public static Parser<Double> chainl1(Parser<Double> self, Parser<BinaryOperator<Double>> op){
+        return chainl1(self, op, false);
     }
 
     public Parser<A> chainr1(Parser<BinaryOperator<A>> op){

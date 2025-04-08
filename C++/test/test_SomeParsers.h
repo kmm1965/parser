@@ -53,11 +53,11 @@ BOOST_AUTO_TEST_CASE(test_double)
     BOOST_TEST(double_.parse(" 1. abc") == Just(std::make_pair(1, "abc"s)));
     BOOST_TEST(double_.parse(" 1.23 abc") == Just(std::make_pair(1.23, "abc"s)));
     BOOST_TEST(double_.parse(" .23 abc") == Just(std::make_pair(0.23, "abc"s)));
-    BOOST_TEST(double_.parse(" +1.23 abc") == Just(std::make_pair(+1.23, "abc"s)));
-    BOOST_TEST(double_.parse(" -1.23 abc") == Just(std::make_pair(-1.23, "abc"s)));
+    BOOST_TEST(double_.parse(" +1.23 abc") == _Nothing<Parser<double>::pair_t>);
+    BOOST_TEST(double_.parse(" -1.23 abc") == _Nothing<Parser<double>::pair_t>);
     BOOST_TEST(double_.parse("1.23e10abc") == Just(std::make_pair(1.23e10, "abc"s)));
     BOOST_TEST(double_.parse("1.23e-10abc") == Just(std::make_pair(1.23e-10, "abc"s)));
-    BOOST_TEST(double_.parse("-1.23e-10abc") == Just(std::make_pair(-1.23e-10, "abc"s)));
+    BOOST_TEST(double_.parse("-1.23e-10abc") == _Nothing<Parser<double>::pair_t>);
     BOOST_TEST(double_.parse("abc") == Nothing);
 }
 

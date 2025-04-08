@@ -56,6 +56,7 @@ type Parser<'A>(unp: string -> Option<'A * string>) =
 
     member this.Rest_r (op: Parser<'A -> 'A -> 'A>) = Parser.Rest (fun unit -> this.Chainr1 op) Parser.Pure op
 
-    member this.Chainl1 (op: Parser<'A -> 'A -> 'A>): Parser<'A> = this.FlatMap (this.Rest_l op)
+    static member Chainl1 (self: Parser<float>, op: Parser<float -> float -> float>, negate_first: Boolean): Parser<float> =
+        self.FlatMap (fun a -> self.Rest_l op (if negate_first then -a else a))
 
     member this.Chainr1 (op: Parser<'A -> 'A -> 'A>): Parser<'A> = this.FlatMap (this.Rest_r op)

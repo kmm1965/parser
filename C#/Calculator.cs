@@ -71,8 +71,8 @@
 
         private static Parser<double> Factor() => Factor0().Chainr1(pow);
 
-        private static Parser<double> Term() => Factor().Chainl1(mul | div);
+        private static Parser<double> Term() => Parser<double>.Chainl1(Factor(), mul | div);
 
-        public static Parser<double> Expr() => Term().Chainl1(add | sub);
+        public static Parser<double> Expr() => SomeParsers.usign.FlatMap(sgn => Parser<double>.Chainl1(Term(), add | sub, sgn == "-"));
     }
 }

@@ -67,9 +67,14 @@ optional_c p = optional_s $ (\c -> [c]) <$> p
 digits :: Parser String
 digits = many $ satisfy isDigit
 
+sign :: Parser String
+sign = optional_c $ char '+' <|> char '-'
+
+usign :: Parser String
+usign = optional_c $ symbol '+' <|> symbol '-'
+
 double :: Parser Double
 double = token $ do
-    sign_part <- sign
     int_part  <- digits
     frac_part <- optional_s $ char '.' >> digits
     exp_part  <- optional_s $ do
@@ -77,13 +82,10 @@ double = token $ do
         exp_digits <- some $ satisfy isDigit
         return $ exp_sign ++ exp_digits
     if length int_part > 0 || length frac_part > 0
-        then return $ read $ sign_part ++ int_part ++
+        then return $ read $ int_part ++
             (if length frac_part > 0 then '.':frac_part else "") ++
             (if length exp_part > 0 then 'e':exp_part else "")
         else empty
-    where
-        sign :: Parser String
-        sign = optional_c $ char '+' <|> char '-'
 
 -- list2Maybe :: [a] -> Maybe a
 -- list2Maybe []  = Nothing
@@ -98,8 +100,8 @@ rest p ff op x = do { f <- op;
                     }
               <|> return x
 
-chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
-chainl1 p op = do { x <- p; rest_l x }
+chainl1 :: (Num a) => Parser a -> Parser (a -> a -> a) -> Bool -> Parser a
+chainl1 p op negate_first = do { x <- p; rest_l $ if negate_first then -x else x }
   where rest_l = rest p rest_l op
 
 chainr1 :: Parser a -> Parser (a -> a -> a) -> Parser a
@@ -177,12 +179,15 @@ op2 :: Char -> (Double -> Double -> Double) -> Parser (Double -> Double -> Doubl
 op2 c f = symbol c >> return f
 
 expr :: Parser Double
-expr = term `chainl1` (add <|> sub) where
+expr = do
+    sgn <- usign
+    chainl1 term (add <|> sub) (sgn == "-")
+  where
     add = op2 '+' (+)
     sub = op2 '-' (-)
 
 term :: Parser Double
-term = factor `chainl1` (mul <|> divide) where
+term = chainl1 factor (mul <|> divide) False where
     mul    = op2 '*' (*)
     divide = op2 '/' (/)
 

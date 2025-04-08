@@ -5,7 +5,7 @@ def sqr(x)
 end
 
 def def_object(n, &x)
-    _name(n).skip { Parser.pure(x.call) }
+    name_(n).skip { Parser.pure(x.call) }
 end
 
 def func =
@@ -63,8 +63,8 @@ def mul = op2('*') { lambda { |x, y| x * y } }
 def div = op2('/') { lambda { |x, y| x / y } }
 def pow = op2('^') { lambda { |x, y| Math.exp(y * Math.log(x)) } }
 
-def expr = term.chainl1(add | sub)
-def term = factor.chainl1(mul | div)
+def expr = usign.and_then { |sgn| chainl1(term, add | sub, sgn == "-") }
+def term = chainl1(factor, mul | div, false)
 def factor = factor0.chainr1(pow)
 
 def factor0 = expr_in_brackets |

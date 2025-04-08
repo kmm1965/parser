@@ -61,8 +61,8 @@ _const =
     def_object("SQRT2",    m_SQRT2)    |
     def_object("SQRT1_2",  m_SQRT1_2)
 
-expr()::Parser = chainl1(term(), add | sub)
-term()::Parser = chainl1(factor(), mul | div)
+expr()::Parser = and_then(usign, sgn -> chainl1(term(), add | sub, sgn == "-"))
+term()::Parser = chainl1(factor(), mul | div, false)
 factor()::Parser = chainr1(factor0(), pow)
 factor0()::Parser = expr_in_brackets() | func * expr_in_brackets | _const | double
 expr_in_brackets()::Parser = between(symbol('('), symbol(')'), expr)

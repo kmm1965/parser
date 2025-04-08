@@ -2,7 +2,7 @@ from typing import Callable
 
 from maybe import T
 from parser import Parser, between
-from some_parsers import name, symbol, double
+from some_parsers import name, symbol, double, usign
 
 from math import sin, cos, acos, sinh, cosh, asinh, acosh, tan, log, log10, exp, sqrt, pi, e
 
@@ -23,10 +23,10 @@ class Calculator(object):
         return self.factor0().chainr1(self.fpow)
     
     def term(self) -> Parser[float]:
-        return self.factor().chainl1(self.mul | self.div)
+        return self.factor().chainl1(self.mul | self.div, False)
     
     def expr(self) -> Parser[float]:
-        return self.term().chainl1(self.add | self.sub)
+        return usign.and_then(lambda sgn: self.term().chainl1(self.add | self.sub, sgn == "-"))
     
     def op2(c: str, f: Callable[[float, float], float]) -> Parser[Callable[[float, float], float]]:
         return symbol(c) >> (lambda: Parser.pure(f))

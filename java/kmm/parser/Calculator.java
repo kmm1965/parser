@@ -3,6 +3,8 @@ package kmm.parser;
 import java.util.function.UnaryOperator;
 import java.util.function.BinaryOperator;
 
+import static kmm.parser.SomeParsers.usign;
+
 public class Calculator {
 
     private static Parser<BinaryOperator<Double>> op2(char c, BinaryOperator<Double> f){
@@ -107,10 +109,10 @@ public class Calculator {
     }
 
     private static Parser<Double> term(){
-        return factor().chainl1(mul.orElse(div));
+        return Parser.chainl1(factor(), mul.orElse(div));
     }
 
     public static Parser<Double> expr(){
-        return term().chainl1(add.orElse(sub));
+        return usign.flatMap(sgn -> Parser.chainl1(term(), add.orElse(sub), sgn.equals("-")));
     }
 }

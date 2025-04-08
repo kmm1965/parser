@@ -19,7 +19,7 @@ class TestSomeParsers < Test::Unit::TestCase
     end
 
     def test_name
-        nsin = _name("sin")
+        nsin = name_("sin")
         
         assert_equal(nsin.parse(" sin ").value, [["sin", ""]])
         assert_equal(nsin.parse("  sin  (1.)").value, [["sin", "(1.)"]])
@@ -27,8 +27,8 @@ class TestSomeParsers < Test::Unit::TestCase
     end
 
     def test_optional_s
-        assert_equal(optional_s(_name("sin")).parse(" sin abc").value, [["sin", "abc"]])
-        assert_equal(optional_s(_name("sin")).parse("abc").value, [["", "abc"]])
+        assert_equal(optional_s(name_("sin")).parse(" sin abc").value, [["sin", "abc"]])
+        assert_equal(optional_s(name_("sin")).parse("abc").value, [["", "abc"]])
         assert_equal(optional_s(char('1')).parse("1234").value, [["1", "234"]])
         assert_equal(optional_s(char('1')).parse("abc").value, [["", "abc"]])
     end
@@ -50,11 +50,8 @@ class TestSomeParsers < Test::Unit::TestCase
         assert_equal(double.parse(" 1. abc").value, [[1, "abc"]])
         assert_equal(double.parse(" 1.23 abc").value, [[1.23, "abc"]])
         assert_equal(double.parse(" .23 abc").value, [[0.23, "abc"]])
-        assert_equal(double.parse(" +1.23 abc").value, [[+1.23, "abc"]])
-        assert_equal(double.parse(" -1.23 abc").value, [[-1.23, "abc"]])
         assert_equal(double.parse("1.23e10abc").value, [[1.23e10, "abc"]])
         assert_equal(double.parse("1.23e-10abc").value, [[1.23e-10, "abc"]])
-        assert_equal(double.parse("-1.23e-10abc").value, [[-1.23e-10, "abc"]])
         assert_equal(double.parse("abc").value, [])
     end
 
@@ -71,7 +68,7 @@ class TestSomeParsers < Test::Unit::TestCase
         sub = symbol('-').skip { Parser.pure(lambda { |x, y| x - y }) }
         pow = symbol('^').skip { Parser.pure(lambda { |x, y| Math.exp(y * Math.log(x)) }) }
 
-        expr = double.chainl1(add | sub)
+        expr = chainl1(double, add | sub, false)
 
         assert_equal(expr.parse("7").value, [[7, ""]])
         assert_equal(expr.parse("7abc").value, [[7, "abc"]])

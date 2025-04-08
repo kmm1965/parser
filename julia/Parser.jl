@@ -3,9 +3,9 @@ module MonadParser
 using Monads, Parsers
 import Monads: mbind, (>>)
 
-import Base: *, /, |, empty, skip
+import Base: *, /, |, +, empty, skip
 
-export Parser, expr, my_parse, mreturn, and_then, satisfy, optional_s, optional_c, between, token, some, many, chainl1, chainr1
+export Parser, expr, my_parse, mreturn, and_then, satisfy, optional_s, optional_c, between, token, ~, some, many, chainl1, chainr1
 
 # Correct an error in the Monads module
 mbind(f::Function, m::Maybe)::Maybe = isa(m.value, Nothing) ? Maybe(nothing) : f(m.value)
@@ -60,6 +60,8 @@ some(p::Parser)::Parser = (c -> s -> c * s) / p * () -> many(p)
 
 many(p::Parser)::Parser = optional_s(some(p))
 
+(+)(p::Parser)::Parser = some(p)
+
 # spaces = many $ satisfy isSpace
 spaces = many(satisfy(c::Char -> isspace(c)))
 
@@ -70,16 +72,18 @@ between(open::Parser, close::Parser, fp::Function)::Parser =
 
 token(p::Parser)::Parser = between(spaces, spaces, () -> p)
 
+(~)(p::Parser)::Parser = token(p)
+
 # rest :: Parser a -> (a -> Parser a) -> Parser (a -> a -> a) -> a -> Parser a
 rest(p::Function, ff::Function, op::Parser, a)::Parser =
     and_then(op, f::Function -> and_then(p(), b -> ff(f(a, b)))) | mreturn(Parser, a)
 
 # chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
-function chainl1(p::Parser, op::Parser)::Parser
+function chainl1(p::Parser, op::Parser, negate_first::Bool)::Parser
     # rest_l a = rest p rest_l op a
     rest_l(a) = rest(() -> p, rest_l, op, a)
 
-    and_then(p, a -> rest_l(a))
+    and_then(p, a -> rest_l(negate_first ? -a : a))
 end
 
 # chainr1 :: Parser a -> Parser (a -> a -> a) -> Parser a

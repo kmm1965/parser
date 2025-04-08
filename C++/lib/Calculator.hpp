@@ -77,6 +77,7 @@ private:
 
 public:
     Parser_d expr() const {
-        return term().chainl1(add | sub);
+        Calculator const self = *this;
+        return _do(sgn, usign, self.term().chainl1(self.add | self.sub, sgn == "-"));
     }
 };

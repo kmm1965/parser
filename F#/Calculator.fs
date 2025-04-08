@@ -71,6 +71,6 @@ type Calculator(unit) =
 
     static member Factor unit: Parser<float> = Calculator.Factor0().Chainr1 Calculator.pow
 
-    static member Term unit: Parser<float> = Calculator.Factor().Chainl1(Calculator.mul.OrElse Calculator.div)
+    static member Term unit: Parser<float> = Parser<float>.Chainl1(Calculator.Factor(), Calculator.mul.OrElse Calculator.div, false)
 
-    static member Expr unit: Parser<float> = Calculator.Term().Chainl1(Calculator.add.OrElse Calculator.sub)
+    static member Expr unit: Parser<float> = usign.FlatMap(fun sgn -> Parser<float>.Chainl1(Calculator.Term(), Calculator.add.OrElse Calculator.sub, sgn.Equals("-")))

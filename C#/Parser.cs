@@ -85,7 +85,8 @@
             return Rest(() => self.Chainr1(op), Parser<T>.Pure, op, a);
         }
 
-        public Parser<T> Chainl1(Parser<Func<T, T, T>> op) => FlatMap(a => Rest_l(op, a));
+        public static Parser<double> Chainl1(Parser<double>  self, Parser<Func<double, double, double>> op, Boolean negate_first = false) =>
+            self.FlatMap(a => self.Rest_l(op, negate_first ? -a : a));
 
         public Parser<T> Chainr1(Parser<Func<T, T, T>> op) => FlatMap(a => Rest_r(op, a));
     }

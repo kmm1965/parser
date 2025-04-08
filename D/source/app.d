@@ -10,4 +10,8 @@ void main()
     calculate("sin(1+1)").writeln;
     calculate("sin ( 2_SQRTPI * sqr ( 2 ) - 1 )").writeln;
     calculate("sqr(2 + 3)").writeln;
+    calculate(" -2 ^ 2").writeln;
+    calculate(" sin(-PI/4)").writeln;
+    calculate(" E ^ PI").writeln;
+    calculate(" PI ^ E").writeln;
 }

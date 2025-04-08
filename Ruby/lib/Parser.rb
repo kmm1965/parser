@@ -73,10 +73,6 @@ class Parser
         rest(lambda { |y| self.rest_l(op, y) }, op, x){ self }
     end
 
-    def chainl1(op)
-        self.and_then { |x| self.rest_l(op, x) }
-    end
-
     def rest_r(op, x)
         rest(lambda { |y| Parser.pure(y) }, op, x){ self.chainr1(op) }
     end
@@ -88,6 +84,10 @@ end
 
 def Parser_liftA2(f)
     lambda { |p1, p2| p1.transform { |x| f.call(x) } * p2.call }
+end
+
+def chainl1(p, op, negate_first)
+    p.and_then { |x| p.rest_l(op, negate_first ? -x : x) }
 end
 
 def empty_string = Parser.pure("")

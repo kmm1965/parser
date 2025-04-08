@@ -77,11 +77,11 @@ auto pow() pure {
 }
 
 Parser!double expr() pure {
-    return term().chainl1(add | sub);
+    return usign.and_then!(sgn => chainl1(term(), add | sub, sgn == "-"));
 }
 
 Parser!double term() pure {
-    return factor().chainl1(mul | div);
+    return chainl1(factor(), mul | div, false);
 }
 
 Parser!double factor() pure {

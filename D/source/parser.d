@@ -308,10 +308,10 @@ Parser!T rest_r(T, Op)(const Parser!T p, const Parser!Op op, T a) pure
     return op.rest!(T, Op, () => p.chainr1(op), b => Parser_pure(b))(a);
 }
 
-Parser!T chainl1(T, Op)(const Parser!T p, const Parser!Op op) pure
+Parser!T chainl1(T, Op)(const Parser!T p, const Parser!Op op, bool negate_first) pure
     if (is (typeof(Op.init(T.init, T.init)) == T))
 {
-    return p.and_then!(a => p.rest_l(op, a));
+    return p.and_then!(a => p.rest_l(op, negate_first ? -a : a));
 }
 
 Parser!T chainr1(T, Op)(const Parser!T p, const Parser!Op op) pure
