@@ -31,6 +31,18 @@ struct parser_list<wchar_t>
     using type = std::wstring;
 };
 
+template<typename A>
+struct is_list : std::false_type {};
+
+template<typename A>
+constexpr bool is_list_v = is_list<A>::value;
+
+template<typename A>
+struct is_list<std::list<A> > : std::true_type {};
+
+template<typename A>
+struct is_list<std::basic_string<A> > : std::true_type {};
+
 template<typename T>
 std::list<T> operator+(T const& x, std::list<T> const& l)
 {
@@ -228,23 +240,23 @@ Parser<A> operator~(Parser<A> const& p){
 }
 
 template<typename A>
-inline Parser<parser_list_t<A> > optional_l(Parser<parser_list_t<A> > const& p){
+Parser<parser_list_t<A> > optional_l(Parser<parser_list_t<A> > const& p){
     return p | Parser<parser_list_t<A> >::pure(parser_list_t<A>());
 }
 
 template<typename A>
-inline Parser<parser_list_t<A> > optional_a(Parser<A> const& p){
+Parser<parser_list_t<A> > optional_a(Parser<A> const& p){
     return optional_l<A>(_([](A const& a){ return parser_list_t<A>{ a }; }) / p);
 }
 
 template<typename A>
-inline Parser<parser_list_t<A> > operator-(Parser<A> const& p){
+std::enable_if_t<!is_list_v<A>, Parser<parser_list_t<A> > > operator-(Parser<A> const& p){
     return optional_a(p);
 }
 
 template<typename A>
-inline Parser<parser_list_t<A> > operator-(Parser<parser_list_t<A> > const& p){
-    return optional_l<A>(p);
+std::enable_if_t<is_list_v<A>, Parser<A> > operator-(Parser<A> const& p){
+    return optional_l<typename A::value_type>(p);
 }
 
 template<typename A>
@@ -277,7 +289,7 @@ Parser<parser_list_t<A> > Parser<A>::some() const {
 
 template<typename A>
 Parser<parser_list_t<A> > Parser<A>::many() const {
-    return optional_l<A>(+*this);
+    return -+*this;
 }
 
 /*
