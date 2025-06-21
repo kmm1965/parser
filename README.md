@@ -1,3 +1,3 @@
 # parser
-Monadic parser in Haskell, C++, java, Julia, Python, C#, F#, Scheme (Lisp), D and Ruby.
+Monadic parser in Haskell, C++, java, Julia, Python, C#, F#, Scheme (Lisp), D, Ruby and Go.
 Also a calculator in Boost Parser and Boost Spirit.
