@@ -1,0 +1,4 @@
+(executable
+ (public_name monad_parser)
+ (name main)
+ (libraries lib_parser))

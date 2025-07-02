@@ -27,7 +27,7 @@ func TestSatisfy(t *testing.T){
     }
 }
 
-func TestEChar(t *testing.T){
+func TestChar(t *testing.T){
     if sp.Char('a').Parse("abc") != maybe.Just(parser.ParserPair[byte]{ 'a', "bc" }) {
         t.Errorf("Char('a').Parse(\"abc\") != Just(('a', \"bc\"))")
     }
@@ -47,7 +47,7 @@ func TestOptional(t *testing.T){
     if sp.Optional_c(sp.Char('1')).Parse("1234") != maybe.Just(parser.ParserPair[string]{ "1", "234" }) {
         t.Errorf("Optional_c(Char('1')).Parse(\"1234\") != Just((\"1\", \"234\"))")
     }
-    if sp.Optional_c(sp.Char('1')).Parse("1234") != maybe.Just(parser.ParserPair[string]{ "1", "234" }) {
+    if sp.Optional_c(sp.Char('1')).Parse("abc") != maybe.Just(parser.ParserPair[string]{ "", "abc" }) {
         t.Errorf("Optional_c(Char('1')).Parse(\"abc\") != Just((\"\", \"abc\"))")
     }
 }

@@ -52,10 +52,10 @@ func TestMaybeFlatMap(t *testing.T){
     }
 
     if safe_log(2.) != maybe.Just(math.Log(2.)) {
-        t.Errorf("safe_sqrt(2.) is not equal to Just(sqrt(2.))")
+        t.Errorf("safe_log(2.) is not equal to Just(log(2.))")
     }
     if safe_log(-2.) != maybe.Nothing[float64]() {
-        t.Errorf("safe_sqrt(-2.) is not equal to Nothing")
+        t.Errorf("safe_log(-2.) is not equal to Nothing")
     }
 
     if maybe.FlatMap(maybe.Just(2.), safe_sqrt) != maybe.Just(math.Sqrt(2.)) {

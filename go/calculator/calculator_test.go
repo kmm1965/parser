@@ -34,9 +34,9 @@ func TestCalculator(t *testing.T){
         t.Errorf("calculate(\"sin(-PI/4)\" != Just((-0.7071067811865475, \"\"))")
     }
     if c.Calculate(" E ^ PI") != maybe.Just(parser.ParserPair[float64]{ 23.140692632779267, "" }) {
-        t.Errorf("calculate(\" E ^ PI\" != Just((23.140692632779263, \"\"))")
+        t.Errorf("calculate(\" E ^ PI\" != Just((23.140692632779267, \"\"))")
     }
     if c.Calculate(" PI ^ E") != maybe.Just(parser.ParserPair[float64]{ 22.45915771836104, "" }) {
-        t.Errorf("calculate(\" PI ^ E\" != Just((22.459157718361038, \"\"))")
+        t.Errorf("calculate(\" PI ^ E\" != Just((22.45915771836104, \"\"))")
     }
 }
