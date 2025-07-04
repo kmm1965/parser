@@ -61,7 +61,7 @@ let double = token(sign >>=
             (if String.length exp_part > 0 then "e" ^ exp_part else "")))
         else empty)))))
 
-let rest fval ff op x = (op >>= (fun f -> fval >>= (fun y -> ff (f x y)))) <|> (fun () -> pure x)
+let rest p ff op x = (op >>= (fun f -> p >>= (fun y -> ff (f x y)))) <|> (fun () -> pure x)
 
 let rec rest_l p op x = rest p (fun y -> rest_l p op y) op x
 
