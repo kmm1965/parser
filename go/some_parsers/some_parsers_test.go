@@ -179,18 +179,18 @@ func TestChainlr1(t *testing.T){
     sub := parser.Skip(sp.Symbol('-'), parser.Pure(func (x float64, y float64) float64 { return x - y }))
     pow := parser.Skip(sp.Symbol('^'), parser.Pure(func (x float64, y float64) float64 { return math.Exp(y * math.Log(x)) }))
     double := sp.Double()
-    expr := sp.Chainl1(double, parser.OrElse(add, sub), false);
+    pexpr := sp.Chainl1(double, parser.OrElse(add, sub), false);
 
-    if expr.Parse("7abc") != maybe.Just(parser.ParserPair[float64]{ 7., "abc" }) {
+    if pexpr.Parse("7abc") != maybe.Just(parser.ParserPair[float64]{ 7., "abc" }) {
         t.Errorf("expt.Parse(\"7abc\") != Just((7., \"abc\"))")
     }
-    if expr.Parse(" 7 - 1 - 2 abc") != maybe.Just(parser.ParserPair[float64]{ 4., "abc" }) {
+    if pexpr.Parse(" 7 - 1 - 2 abc") != maybe.Just(parser.ParserPair[float64]{ 4., "abc" }) {
         t.Errorf("expt.Parse(\" 7 - 1 - 2 abc\") != Just((4., \"abc\"))")
     }
-    if expr.Parse(" 7 - 1 + 2 - 3 abc") != maybe.Just(parser.ParserPair[float64]{ 5., "abc" }) {
+    if pexpr.Parse(" 7 - 1 + 2 - 3 abc") != maybe.Just(parser.ParserPair[float64]{ 5., "abc" }) {
         t.Errorf("expt.Parse(\" 7 - 1 + 2 - 3 abc\") != Just((5., \"abc\"))")
     }
-    if expr.Parse("abc") != maybe.Nothing[parser.ParserPair[float64]]() {
+    if pexpr.Parse("abc") != maybe.Nothing[parser.ParserPair[float64]]() {
         t.Errorf("expt.Parse(\"abc\") != Nothing")
     }
 

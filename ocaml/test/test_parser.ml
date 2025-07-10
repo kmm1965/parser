@@ -201,11 +201,11 @@ let test_chainlr1 () =
     let add = Parser.skip (symbol '+') (Parser.pure (fun x y -> x +. y)) in
     let sub = Parser.skip (symbol '-') (Parser.pure (fun x y -> x -. y)) in
     let pow = Parser.skip (symbol '^') (Parser.pure (fun x y -> exp (y *. (log x)))) in
-    let expr = chainl1 double (Parser.or_else add sub) false in
-    test_float_pair "parse (chainl1 double (add <||> sub) false) \"7abc\"" (Parser.parse expr "7abc") (just (7., "abc"));
-    test_float_pair "parse (chainl1 double (add <||> sub) false) \" 7 - 1 - 2 abc\"" (Parser.parse expr " 7 - 1 - 2 abc") (just (4., "abc"));
-    test_float_pair "parse (chainl1 double (add <||> sub) false) \" 7 - 1 + 2 - 3 abc\"" (Parser.parse expr " 7 - 1 + 2 - 3 abc") (just (5., "abc"));
-    test_float_pair "parse (chainl1 double (add <||> sub) false) \"abc\"" (Parser.parse expr "abc") nothing;
+    let pexpr = chainl1 double (Parser.or_else add sub) false in
+    test_float_pair "parse pexpr \"7abc\"" (Parser.parse pexpr "7abc") (just (7., "abc"));
+    test_float_pair "parse pexpr \" 7 - 1 - 2 abc\"" (Parser.parse pexpr " 7 - 1 - 2 abc") (just (4., "abc"));
+    test_float_pair "parse pexpr \" 7 - 1 + 2 - 3 abc\"" (Parser.parse pexpr " 7 - 1 + 2 - 3 abc") (just (5., "abc"));
+    test_float_pair "parse pexpr \"abc\"" (Parser.parse expr "abc") nothing;
     test_float_pair "parse (chainr1 double pow) \"3 ^ 2 ^ 3 abc\"" (Parser.parse (chainr1 double pow) "3 ^ 2 ^ 3 abc") (just (6561., "abc"))
 
 let test_some_parsers () =

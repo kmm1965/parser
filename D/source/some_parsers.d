@@ -113,12 +113,12 @@ unittest {
     auto add = symbol('+') >> Parser_pure((double x, double y) => x + y);
     auto sub = symbol('-') >> Parser_pure((double x, double y) => x - y);
     auto pow = symbol('^') >> Parser_pure((double x, double y) => exp(y * log(x)));
-    auto expr = chainl1(double_, add | sub, false);
+    auto pexpr = chainl1(double_, add | sub, false);
 
-    assert(expr.parse("7abc") == Just(tuple(7., "abc")));
-    assert(expr.parse(" 7 - 1 - 2 abc") == Just(tuple(4., "abc")));
-    assert(expr.parse(" 7 - 1 + 2 - 3 abc") == Just(tuple(5., "abc")));
-    assert(expr.parse("abc") == Nothing!(Tuple!(double, string)));
+    assert(pexpr.parse("7abc") == Just(tuple(7., "abc")));
+    assert(pexpr.parse(" 7 - 1 - 2 abc") == Just(tuple(4., "abc")));
+    assert(pexpr.parse(" 7 - 1 + 2 - 3 abc") == Just(tuple(5., "abc")));
+    assert(pexpr.parse("abc") == Nothing!(Tuple!(double, string)));
 
     assert(double_.chainr1!double(pow).parse("3 ^ 2 ^ 3 abc")
         .transform!(pair => tuple(round(pair[0]), pair[1])) == Just(tuple(6561., "abc")));

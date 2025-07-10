@@ -189,13 +189,14 @@ class ParserTest extends AnyFunSuite {
   private def test_chainlr1(): Unit = {
     val add = symbol('+').skip(pure((x: Double, y: Double) => x + y))
     val sub = symbol('-').skip(pure((x: Double, y: Double) => x - y))
-    val expr = add.orElse(sub)
+    val pexpr = chainl1(double, add.orElse(sub), false)
     val pow = symbol('^').skip(pure((x: Double, y: Double) => exp(y * log(x))))
 
-    assert(chainl1(double, expr, false).parse("7abc") === Some((7.0, "abc")))
-    assert(chainl1(double, expr, false).parse(" 7 - 1 - 2 abc") === Some((4.0, "abc")))
-    assert(chainl1(double, expr, false).parse(" 7 - 1 + 2 - 3 abc") === Some((5.0, "abc")))
-    assert(chainl1(double, expr, false).parse("abc") === None)
+    assert(pexpr.parse("7abc") === Some((7.0, "abc")))
+    assert(pexpr.parse(" 7 - 1 - 2 abc") === Some((4.0, "abc")))
+    assert(pexpr.parse(" 7 - 1 + 2 - 3 abc") === Some((5.0, "abc")))
+    assert(pexpr.parse("abc") === None)
+
     assert(chainr1(double, pow).parse("3 ^ 2 ^ 3 abc").map((x, s) => (rint(x), s)) === Some((6561.0, "abc")))
   }
 

@@ -68,14 +68,14 @@ class TestSomeParsers < Test::Unit::TestCase
         sub = symbol('-').skip { Parser.pure(lambda { |x, y| x - y }) }
         pow = symbol('^').skip { Parser.pure(lambda { |x, y| Math.exp(y * Math.log(x)) }) }
 
-        expr = chainl1(double, add | sub, false)
+        pexpr = chainl1(double, add | sub, false)
 
-        assert_equal(expr.parse("7").value, [[7, ""]])
-        assert_equal(expr.parse("7abc").value, [[7, "abc"]])
-        assert_equal(expr.parse("7-1").value, [[6, ""]])
-        assert_equal(expr.parse(" 7 - 1 - 2 abc").value, [[4, "abc"]])
-        assert_equal(expr.parse(" 7 - 1 + 2 - 3 abc").value, [[5, "abc"]])
-        assert_equal(expr.parse("abc").value, [])
+        assert_equal(pexpr.parse("7").value, [[7, ""]])
+        assert_equal(pexpr.parse("7abc").value, [[7, "abc"]])
+        assert_equal(pexpr.parse("7-1").value, [[6, ""]])
+        assert_equal(pexpr.parse(" 7 - 1 - 2 abc").value, [[4, "abc"]])
+        assert_equal(pexpr.parse(" 7 - 1 + 2 - 3 abc").value, [[5, "abc"]])
+        assert_equal(pexpr.parse("abc").value, [])
 
         assert_equal(double.chainr1(pow).parse("3 ^ 2 ^ 3 abc")
             .transform { |pair| [pair[0].round, pair[1]] }.value, [[6561, "abc"]])

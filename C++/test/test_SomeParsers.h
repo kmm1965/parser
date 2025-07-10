@@ -81,14 +81,14 @@ BOOST_AUTO_TEST_CASE(test_chainlr1)
 
     #undef FUNC
 
-    Parser<double> const expr = double_.chainl1(add | sub);
+    Parser<double> const pexpr = double_.chainl1(add | sub);
 
-    BOOST_TEST(expr.parse("7") == Just(std::make_pair(7, ""s)));
-    BOOST_TEST(expr.parse("7abc") == Just(std::make_pair(7, "abc"s)));
-    BOOST_TEST(expr.parse("7-1") == Just(std::make_pair(6, ""s)));
-    BOOST_TEST(expr.parse(" 7 - 1 - 2 abc") == Just(std::make_pair(4, "abc"s)));
-    BOOST_TEST(expr.parse(" 7 - 1 + 2 - 3 abc") == Just(std::make_pair(5, "abc"s)));
-    BOOST_TEST(expr.parse("abc") == Nothing);
+    BOOST_TEST(pexpr.parse("7") == Just(std::make_pair(7, ""s)));
+    BOOST_TEST(pexpr.parse("7abc") == Just(std::make_pair(7, "abc"s)));
+    BOOST_TEST(pexpr.parse("7-1") == Just(std::make_pair(6, ""s)));
+    BOOST_TEST(pexpr.parse(" 7 - 1 - 2 abc") == Just(std::make_pair(4, "abc"s)));
+    BOOST_TEST(pexpr.parse(" 7 - 1 + 2 - 3 abc") == Just(std::make_pair(5, "abc"s)));
+    BOOST_TEST(pexpr.parse("abc") == Nothing);
 
     BOOST_TEST(double_.chainr1(pow).parse("3 ^ 2 ^ 3 abc") == Just(std::make_pair(6561, "abc"s)));
 }
