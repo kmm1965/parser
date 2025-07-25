@@ -12,9 +12,9 @@ object SomeParsers {
   def between[A, O, C](open: Parser[O], close: Parser[C], p: => Parser[A]): Parser[A] =
     open.flatMap(_ => p.flatMap(x => close.flatMap(_ => pure(x))))
 
-  def some(p: Parser[Char]): Parser[String] = apply(p.map(c => (s: String) => c + s), many(p))
+  private def some(p: Parser[Char]): Parser[String] = apply(p.map(c => (s: String) => c.toString + s), many(p))
 
-  def many(p: Parser[Char]): Parser[String] = some(p).orElse(empty_string)
+  private def many(p: Parser[Char]): Parser[String] = some(p).orElse(empty_string)
 
   val spaces: Parser[String] = many(satisfy(Character.isWhitespace))
 
@@ -26,7 +26,7 @@ object SomeParsers {
 
   def name(n: String): Parser[String] = token(some(alnum).flatMap(s => if s.equals(n) then pure(n) else empty))
 
-  def optional_s(p: Parser[String]): Parser[String] = p.orElse(empty_string)
+  private def optional_s(p: Parser[String]): Parser[String] = p.orElse(empty_string)
 
   def optional_c(p: Parser[Char]): Parser[String] = optional_s(p.map(_.toString))
 
@@ -44,8 +44,8 @@ object SomeParsers {
       exp_digits => Parser.pure(exp_sign + exp_digits)))).flatMap(
     exp_part => if int_part.nonEmpty || frac_part.nonEmpty then
       Parser.pure((sign_part + int_part +
-        (if frac_part.nonEmpty then '.' + frac_part else "") +
-        (if exp_part.nonEmpty then 'e' + exp_part else "")).toDouble)
+        (if frac_part.nonEmpty then "." + frac_part else "") +
+        (if exp_part.nonEmpty then "e" + exp_part else "")).toDouble)
       else empty)))))
 
   private def rest[A](p: => Parser[A], ff: A => Parser[A], op: Parser[(A, A) => A], a: A): Parser[A] =

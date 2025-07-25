@@ -99,7 +99,10 @@ class Calculator {
     }
 
     fun factor0(): Parser<Double> {
-        return exprInBrackets.orElse{ Parser.apply(func) { exprInBrackets } }.orElse { const }.orElse { double }
+        return exprInBrackets
+            .orElse { Parser.apply(func) { exprInBrackets } }
+            .orElse { const }
+            .orElse { double }
     }
 
     val exprInBrackets: Parser<Double> = between(symbol('('), symbol(')')) { expr() }

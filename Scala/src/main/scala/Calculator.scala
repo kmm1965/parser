@@ -65,11 +65,18 @@ object Calculator {
   ))
 
   private val expr: () => Parser[Double] = () => usign.flatMap(sgn => chainl1(term(), add.orElse(sub), sgn.equals("-")))
+
   private val term: () => Parser[Double] = () => chainl1(factor(), mul.orElse(div), false)
+
   private val factor: () => Parser[Double] = () => chainr1(factor0(), pow)
+
   private val factor0: () => Parser[Double] = () =>
-    expr_in_brackets.orElse(apply(func, expr_in_brackets)).orElse(_const).orElse(double)
+    expr_in_brackets
+      .orElse(apply(func, expr_in_brackets))
+      .orElse(_const)
+      .orElse(double)
+
   private val expr_in_brackets: Parser[Double] = between(symbol('('), symbol(')'), expr())
 
-  def calculate(s: String) = expr().parse(s)
+  def calculate(s: String): Option[(Double, String)] = expr().parse(s)
 }
