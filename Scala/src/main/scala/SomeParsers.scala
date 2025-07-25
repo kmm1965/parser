@@ -12,9 +12,9 @@ object SomeParsers {
   def between[A, O, C](open: Parser[O], close: Parser[C], p: => Parser[A]): Parser[A] =
     open.flatMap(_ => p.flatMap(x => close.flatMap(_ => pure(x))))
 
-  def some[A](p: Parser[Char]): Parser[String] = apply(p.map(c => (s: String) => c + s), many(p))
+  def some(p: Parser[Char]): Parser[String] = apply(p.map(c => (s: String) => c + s), many(p))
 
-  def many[A](p: Parser[Char]): Parser[String] = some(p).orElse(empty_string)
+  def many(p: Parser[Char]): Parser[String] = some(p).orElse(empty_string)
 
   val spaces: Parser[String] = many(satisfy(Character.isWhitespace))
 

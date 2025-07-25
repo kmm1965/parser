@@ -16,12 +16,12 @@ object Calculator {
   private def fold[A](parsers: List[Parser[A]]): Parser[A] = {
     var p0 = empty[A]
     parsers.foreach(p => p0 = p0.orElse(p))
-    p0
+    token(p0)
   }
 
   private def def_object[A](n: String, value: A): Parser[A] = name(n).skip(pure(value))
 
-  private val func: Parser[Double => Double] = token(fold(List(
+  private val func: Parser[Double => Double] = fold(List(
     def_object("sin",   sin),
     def_object("cos",   cos),
     def_object("asin",  asin),
@@ -34,7 +34,7 @@ object Calculator {
     def_object("exp", exp),
     def_object("sqrt", sqrt),
     def_object("sqr", (x: Double) => x * x)
-  )))
+  ))
 
   private val M_LOG2E = 1.44269504088896340736    // log2(e)
   private val M_LOG10E = 0.434294481903251827651  // log10(e)
@@ -48,7 +48,7 @@ object Calculator {
   private val M_SQRT2 = 1.41421356237309504880    // sqrt(2)
   private val M_SQRT1_2 = 0.707106781186547524401 // 1/sqrt(2)
 
-  private val _const = token(fold(List(
+  private val _const = fold(List(
     def_object("E", Math.E),
     def_object("PI", Math.PI),
     def_object("LOG2E", M_LOG2E),
@@ -62,7 +62,7 @@ object Calculator {
     def_object("2_SQRTPI", M_2_SQRTPI),
     def_object("SQRT2", M_SQRT2),
     def_object("SQRT1_2", M_SQRT1_2)
-  )))
+  ))
 
   private val expr: () => Parser[Double] = () => usign.flatMap(sgn => chainl1(term(), add.orElse(sub), sgn.equals("-")))
   private val term: () => Parser[Double] = () => chainl1(factor(), mul.orElse(div), false)
