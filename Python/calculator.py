@@ -86,3 +86,6 @@ class Calculator(object):
         def_object("SQRT2",    M_SQRT2)    |
         def_object("SQRT1_2",  M_SQRT1_2)
     ).token()
+
+def calculate(inp):
+    return Calculator().expr().parse(inp)

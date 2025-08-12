@@ -52,9 +52,9 @@ class ParserTest extends AnyFunSuite {
   }
 
   private def test_parser_pure(): Unit = {
-    pure(1).parse("abc") === Some((1, "abc"))
-    pure(1.0).parse("abc") === Some((1.0, "abc"))
-    pure("1").parse("abc") === Some(("1", "abc"))
+    assert(pure(1).parse("abc") === Some((1, "abc")))
+    assert(pure(1.0).parse("abc") === Some((1.0, "abc")))
+    assert(pure("1").parse("abc") === Some(("1", "abc")))
   }
 
   private def test_parser_functor(): Unit = {
