@@ -1,15 +1,19 @@
+{-# LANGUAGE LambdaCase #-}
+
 import Data.Char (isSpace, isAlphaNum, isDigit)
-import Control.Applicative -- Alternative
+import Control.Applicative
 import Numeric (readFloat)
+import Data.Bifunctor
+import Control.Monad
 
 newtype Parser a = P (String -> Maybe (a, String))
 
 parse :: Parser a -> String -> Maybe (a, String)
-parse (P p) inp = p inp
+parse (P p) = p
 
 instance Functor Parser where
     -- fmap :: (a -> b) -> Parser a -> Parser b
-    fmap f p = P $ \inp -> (\(x, out) -> (f x, out)) <$> parse p inp
+    fmap f p = P (fmap (Data.Bifunctor.first f) . parse p)
 
 instance Applicative Parser where
     -- pure :: a -> Parser a
@@ -19,23 +23,21 @@ instance Applicative Parser where
     pf <*> q = do f <- pf; f <$> q
 
 instance Monad Parser where
-    return = pure
     -- (>>=) :: Parser a -> (a -> Parser b) -> Parser b
-    -- p >>= f = P $ \inp -> do (x, out) <- parse p inp; parse (f x) out
-    p >>= f = P $ \inp -> parse p inp >>= (\(x, out) -> parse (f x) out)
+    p >>= f = P (parse p >=> (\ (x, out) -> parse (f x) out))
 
 instance Alternative Parser where
     -- empty :: Parser a
-    empty = P $ \_ -> Nothing
+    empty = P $ const Nothing
 
     -- (<|>) :: Parser a -> Parser a -> Parser a
     p <|> q = P $ \inp -> parse p inp <|> parse q inp
 
 anyChar :: Parser Char
-anyChar = P $ \inp -> case inp of
+anyChar = P $ \case
     []     -> Nothing
     (x:xs) -> Just (x, xs)
-  
+
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy pred = do
     x <- anyChar
@@ -53,46 +55,47 @@ between open close p = do
     close; return x
 
 token :: Parser a -> Parser a
-token p = between spaces spaces p
+token = between spaces spaces
 
 symbol :: Char -> Parser Char
 symbol c = token $ char c
 
-optional_s :: Parser String -> Parser String
-optional_s p = p <|> pure ""
+optionalS :: Parser String -> Parser String
+optionalS p = p <|> pure ""
 
-optional_c :: Parser Char -> Parser String
-optional_c p = optional_s $ (\c -> [c]) <$> p
+optionalC :: Parser Char -> Parser String
+optionalC p = optionalS $ (: []) <$> p
 
 digits :: Parser String
 digits = many $ satisfy isDigit
 
 sign :: Parser String
-sign = optional_c $ char '+' <|> char '-'
+sign = optionalC $ char '+' <|> char '-'
 
 usign :: Parser String
-usign = optional_c $ symbol '+' <|> symbol '-'
+usign = optionalC $ symbol '+' <|> symbol '-'
 
 double :: Parser Double
 double = token $ do
     int_part  <- digits
-    frac_part <- optional_s $ char '.' >> digits
-    exp_part  <- optional_s $ do
+    frac_part <- optionalS $ char '.' >> digits
+    exp_part  <- optionalS $ do
         exp_sign   <- (char 'e' <|> char 'E') >> sign
         exp_digits <- some $ satisfy isDigit
         return $ exp_sign ++ exp_digits
-    if length int_part > 0 || length frac_part > 0
+    if not (null int_part) || not (null frac_part)
         then return $ read $ int_part ++
-            (if length frac_part > 0 then '.':frac_part else "") ++
-            (if length exp_part > 0 then 'e':exp_part else "")
+            (if not (null frac_part) then '.':frac_part else "") ++
+            (if not (null exp_part) then 'e':exp_part else "")
         else empty
 
--- list2Maybe :: [a] -> Maybe a
--- list2Maybe []  = Nothing
--- list2Maybe [x] = Just x
+list2Maybe :: [a] -> Maybe a
+list2Maybe []  = Nothing
+list2Maybe [x] = Just x
 
--- double = token $ P (list2Maybe . readFloat)
-    
+double2 :: Parser Double
+double2 = token $ P (list2Maybe . readFloat)
+
 rest :: Parser a -> (a -> Parser a) -> Parser (a -> a -> a) -> a -> Parser a
 rest p ff op x = do { f <- op;
                       y <- p;
@@ -118,24 +121,24 @@ name n = token $ do
 sqr :: (Num a) => a -> a
 sqr x = x * x
 
-def_object :: String -> a -> Parser a
-def_object n x = name n >> return x
+defObject :: String -> a -> Parser a
+defObject n x = name n >> return x
 
 functions :: [Parser (Double -> Double)]
 functions = [
-    def_object "sin"   sin,
-    def_object "cos"   cos,
-    def_object "asin"  asin,
-    def_object "acos"  acos,
-    def_object "sinh"  sinh,
-    def_object "cosh"  cosh,
-    def_object "asinh" asinh,
-    def_object "acosh" acosh,
-    def_object "tan"   tan,
-    def_object "log"   log,
-    def_object "exp"   exp,
-    def_object "sqrt"  sqrt,
-    def_object "sqr"   sqr
+    defObject "sin"   sin,
+    defObject "cos"   cos,
+    defObject "asin"  asin,
+    defObject "acos"  acos,
+    defObject "sinh"  sinh,
+    defObject "cosh"  cosh,
+    defObject "asinh" asinh,
+    defObject "acosh" acosh,
+    defObject "tan"   tan,
+    defObject "log"   log,
+    defObject "exp"   exp,
+    defObject "sqrt"  sqrt,
+    defObject "sqr"   sqr
   ]
 
 func :: Parser (Double -> Double)
@@ -157,19 +160,19 @@ m_SQRT1_2  = 0.707106781186547524401  -- 1/sqrt(2)
 
 constants :: [Parser Double]
 constants = [
-    def_object "E"        m_E,
-    def_object "LOG2E"    m_LOG2E,
-    def_object "LOG10E"   m_LOG10E,
-    def_object "LN2"      m_LN2,
-    def_object "LN10"     m_LN10,
-    def_object "PI"       pi,
-    def_object "PI_2"     m_PI_2,
-    def_object "PI_4"     m_PI_4,
-    def_object "1_PI"     m_1_PI,
-    def_object "2_PI"     m_2_PI,
-    def_object "2_SQRTPI" m_2_SQRTPI,
-    def_object "SQRT2"    m_SQRT2,
-    def_object "SQRT1_2"  m_SQRT1_2
+    defObject "E"        m_E,
+    defObject "LOG2E"    m_LOG2E,
+    defObject "LOG10E"   m_LOG10E,
+    defObject "LN2"      m_LN2,
+    defObject "LN10"     m_LN10,
+    defObject "PI"       pi,
+    defObject "PI_2"     m_PI_2,
+    defObject "PI_4"     m_PI_4,
+    defObject "1_PI"     m_1_PI,
+    defObject "2_PI"     m_2_PI,
+    defObject "2_SQRTPI" m_2_SQRTPI,
+    defObject "SQRT2"    m_SQRT2,
+    defObject "SQRT1_2"  m_SQRT1_2
   ]
 
 _const :: Parser Double
@@ -208,8 +211,9 @@ calculate s = (\(x, "") -> x) <$> parse expr s
 
 main :: IO ()
 main = do
-    putStrLn "Input expression: "
-    inp <- getLine
+    --putStrLn "Input expression: "
+    --inp <- getLine
+    let inp = "7 - 1 - 2"
     case calculate inp of
         Nothing -> putStrLn "Wrong expression"
         Just a -> print a
