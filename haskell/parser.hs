@@ -50,9 +50,7 @@ spaces :: Parser String
 spaces = many $ satisfy isSpace
 
 between :: Parser open -> Parser close -> Parser a -> Parser a
-between open close p = do
-    open;  x <- p
-    close; return x
+between open close p = open *> p <* close
 
 token :: Parser a -> Parser a
 token = between spaces spaces
