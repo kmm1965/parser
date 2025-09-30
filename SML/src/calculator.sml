@@ -37,11 +37,11 @@ struct
   ]);
 
   val consts = fold([
-    defObject("E", 		    Math.e),             (* e *)
-    defObject("PI", 	    Math.pi),            (* pi *)
+    defObject("E", 	      Math.e),             (* e *)
+    defObject("PI",       Math.pi),            (* pi *)
     defObject("LOG2E",    1.4426950408889634), (* log2(e) *)
     defObject("LOG10E",   0.4342944819032518), (* log10(e) *)
-    defObject("LN2", 	    0.6931471805599453), (* ln(2) *)
+    defObject("LN2",      0.6931471805599453), (* ln(2) *)
     defObject("LN10", 	  2.302585092994046),  (* ln(10) *)
     defObject("PI_2", 	  1.5707963267948966), (* pi/2 *)
     defObject("PI_4", 	  0.7853981633974483), (* pi/4 *)
@@ -56,9 +56,9 @@ struct
   and term() = chainl1(factor(), or_else(mul, fn () => div_), false)
   and factor() = chainr1(factor0(), pow)
   and factor0() = or_else(or_else(or_else(expr_in_brackets(),
-        fn () => apply(funcs, expr_in_brackets)),
-        fn () => consts),
-        fn () => double)
+      fn () => apply(funcs, expr_in_brackets)),
+      fn () => consts),
+      fn () => double)
   and expr_in_brackets() = between(symbol(#"("), symbol(#")"), expr);
 
   fun calculate(s: string) = expr()(s);
