@@ -16,7 +16,7 @@ struct
   val pow  = op2(#"^", fn (x, y) => Math.exp(y * Math.ln(x)));
 
   fun fold(parsers: ('a Parser) list) =
-    List.foldl(fn (p, q) => or_else(p, fn () => q)) empty parsers;
+    token(List.foldl(fn (p, q) => or_else(p, fn () => q)) empty parsers);
 
   fun defObject(n: string, value: 'a) =
     skip(name(n), fn () => pure(value));

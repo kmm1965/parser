@@ -27,7 +27,7 @@ class Calculator
   end
 
   def self.fold(parsers : Array(Parser(A))) : Parser(A) forall A
-    parsers.reduce(Parser(A).empty){ |p, q| p.or_else{ q } }
+    SomeParsers.token(parsers.reduce(Parser(A).empty){ |p, q| p.or_else{ q } })
   end
 
   def self.defObject(n : String, value : A) : Parser(A) forall A
