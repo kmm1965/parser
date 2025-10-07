@@ -99,8 +99,12 @@ func Usign() parser.Parser[string] {
     return Optional_c(parser.OrElse(Symbol('+'), Symbol('-')))
 }
 
+func Digit() parser.Parser[byte] {
+    return Satisfy(func (c byte) bool { return unicode.IsDigit(rune(c)) })
+}
+
 func Digits() parser.Parser[string] {
-    return Many(Satisfy(func (c byte) bool { return unicode.IsDigit(rune(c)) }))
+    return Many(Digit())
 }
 
 func iff[A any](cond bool, if_true A, if_false A) A {
@@ -116,7 +120,7 @@ func Double() parser.Parser[float64] {
         func (frac_part string) parser.Parser[float64] { return parser.FlatMap(Optional_s(parser.FlatMap(
                 parser.Skip(parser.OrElse(Char('e'), Char('E')), sign),
             func (exp_sign string) parser.Parser[string] {
-                return parser.FlatMap(Some(Satisfy(func (c byte) bool { return unicode.IsDigit(rune(c)) })),
+                return parser.FlatMap(Some(Digit()),
             func (exp_digits string) parser.Parser[string] {
                 return parser.Pure(exp_sign + exp_digits) }) })),
         func (exp_part string) parser.Parser[float64] {

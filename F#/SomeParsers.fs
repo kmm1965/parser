@@ -11,7 +11,9 @@ let Char_(c: char): Parser<char> = Parser<char>.Satisfy(_.Equals(c))
 
 let Symbol(c: char): Parser<char> = Char_(c).Token()
 
-let digits: Parser<string> = (Parser<char>.Satisfy Char.IsDigit).Many()
+let digit: Parser<char> = Parser<char>.Satisfy Char.IsDigit
+
+let digits: Parser<string> = digit.Many()
 
 let sign: Parser<string> = Parser<char>.Optional_c(Char_('+').OrElse(Char_ '-'))
 let usign: Parser<string> = Parser<char>.Optional_c(Symbol('+').OrElse(Symbol '-'))
@@ -21,7 +23,7 @@ let NumberDecimalSeparator = System.Globalization.CultureInfo.CurrentCulture.Num
 let double: Parser<float> = digits.FlatMap(
     fun int_part  -> Parser<string>.Optional_s(Char_('.').Skip(digits)).FlatMap(
     fun frac_part -> Parser<string>.Optional_s(Char_('e').OrElse(Char_ 'E').Skip(sign).FlatMap(
-        fun exp_sign   -> Parser<string>.Satisfy(Char.IsDigit).Some().FlatMap(
+        fun exp_sign   -> digit.Some().FlatMap(
         fun exp_digits -> Parser<string>.Pure(exp_sign + exp_digits)))).FlatMap(
     fun exp_part ->
         if int_part.Length > 0 || frac_part.Length > 0

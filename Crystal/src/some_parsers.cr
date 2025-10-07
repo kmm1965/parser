@@ -57,8 +57,12 @@ class SomeParsers
     optional_s(p.map(&.to_s))
   end
 
+  def self.digit : Parser(Char)
+    satisfy(&.number?)
+  end
+
   def self.digits : Parser(String)
-    many(satisfy(&.number?))
+    many(digit)
   end
 
   def self.sign : Parser(String)
@@ -69,17 +73,11 @@ class SomeParsers
     optional_c(symbol('+').or_else{ symbol('-') })
   end
 
-  def self.double1 : Parser(Float64)
-    token(digits
-      .flat_map{ |int_part| Parser.pure(int_part.to_f)
-    })
-  end
-
   def self.double : Parser(Float64)
     token(digits
       .flat_map{ |int_part| optional_s(char('.').skip{ digits })
       .flat_map{ |frac_part| optional_s(char('e').or_else{ char('E') }.skip{ sign }
-        .flat_map{ |exp_sign| some(satisfy(&.number?))
+        .flat_map{ |exp_sign| some(digit)
         .flat_map{ |exp_digits| Parser.pure(exp_sign + exp_digits) } })
       .flat_map{ |exp_part| int_part.size > 0 || frac_part.size > 0 ?
         Parser.pure((int_part +
@@ -97,7 +95,7 @@ class SomeParsers
   end
 
   def self.chainl1(p : Parser(Float64), op : Parser(Proc(Float64, Float64, Float64)), negate_first : Bool) : Parser(Float64)
-    p.flat_map{ |x| rest_l(p, op, negate_first ? -x : x) };
+    p.flat_map{ |x| rest_l(p, op, negate_first ? -x : x) }
   end
 
   def self.rest_r(p : Parser(A), op : Parser(Proc(A, A, A)), x : A) : Parser(A) forall A
@@ -105,7 +103,7 @@ class SomeParsers
   end
 
   def self.chainr1(p : Parser(A), op : Parser(Proc(A, A, A))) : Parser(A) forall A
-    p.flat_map{ |x| rest_r(p, op, x) };
+    p.flat_map{ |x| rest_r(p, op, x) }
   end
 
 end

@@ -32,7 +32,7 @@ describe Parser do
 
   describe "flat_map" do
     it "test Parser.flat_map" do
-      i1 = Parser.pure(1);
+      i1 = Parser.pure(1)
       empty = Parser(Int32).empty
 
       i1.flat_map(&->eat(Int32)).parse("abc").should be Just.new({"1abc", ""})
@@ -44,7 +44,7 @@ describe Parser do
 
   describe "apply" do
     it "test Parser.apply" do
-      psin = Parser.pure(->(x: Float64){ Math.sin(x) });
+      psin = Parser.pure(->(x: Float64){ Math.sin(x) })
       pempty = Parser(Proc(Float64, Float64)).empty
       f1 = Parser.pure(1.0)
       fe = Parser(Float64).empty

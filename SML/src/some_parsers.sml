@@ -38,7 +38,9 @@ struct
 
   fun optional_c(p: char Parser): string Parser = optional_s(map(p, fn (c) => String.str c));
 
-  val digits = many(satisfy(fn (c) => Char.isDigit c));
+  val digit = satisfy(Char.isDigit);
+
+  val digits = many(digit);
 
   val sign = optional_c(or_else(char(#"+"), fn () => char(#"-")));
 
@@ -47,7 +49,7 @@ struct
 val double = token(flat_map(digits,
   fn (int_part) => flat_map(optional_s(skip(char(#"."), fn () => digits)),
   fn (frac_part) => flat_map(optional_s(flat_map(skip(or_else(char(#"e"), fn () => char(#"E")), fn () => sign),
-    fn (exp_sign) => flat_map(some(satisfy(Char.isDigit)),
+    fn (exp_sign) => flat_map(some(digit),
     fn (exp_digits) => pure(exp_sign ^ exp_digits)))),
   fn (exp_part) =>
     if String.size int_part > 0 orelse String.size frac_part > 0

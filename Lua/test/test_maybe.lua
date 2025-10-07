@@ -1,4 +1,4 @@
-local Maybe = require("../src/maybe")
+local Maybe = require("src/maybe")
 
 local some = Maybe.some
 local nothing = Maybe.nothing
@@ -11,11 +11,11 @@ print(nothing:map(tostring).value == nil)
 
 -- Test Maybe:flat_map
 function safe_sqrt(x)
-    return x < 0 and nothing or some(math.sqrt(x))
+  return x < 0 and nothing or some(math.sqrt(x))
 end
 
 function safe_log(x)
-    return x <= 0 and nothing or some(math.log(x))
+  return x <= 0 and nothing or some(math.log(x))
 end
 
 print(safe_sqrt(2.0).value == math.sqrt(2.0))
@@ -35,7 +35,7 @@ print(some(0.0):flat_map(safe_sqrt):flat_map(safe_log).value == nil)
 print(some(-2.0):flat_map(safe_sqrt):flat_map(safe_log).value == nil)
 
 function toString(i)
-    return i % 2 == 1 and nothing or some(tostring(i))
+  return i % 2 == 1 and nothing or some(tostring(i))
 end
 
 print(some(2):flat_map(toString).value == "2")

@@ -1,4 +1,4 @@
-require "../src/calculator";
+require "../src/calculator"
 
 def maybeToString(m : Maybe({Float64, String})) : String
   case m

@@ -44,7 +44,7 @@ class SomeParsers {
         val alnum: Parser<Char> = satisfy { c -> c.isLetterOrDigit() || c == '_' }
 
         fun name(n:String): Parser<String>{
-            return token(some(alnum)).flatMap { s -> if(s.equals(n)){ Parser.pure(n)} else { Parser.empty() } }
+            return token(some(alnum).flatMap { s -> if(s.equals(n)){ Parser.pure(n)} else { Parser.empty() } })
         }
 
         fun optional_s(p: Parser<String>) : Parser<String> {
@@ -55,7 +55,9 @@ class SomeParsers {
             return optional_s(p.map { c -> c.toString() })
         }
 
-        val digits: Parser<String> = many(satisfy { c -> c.isDigit() })
+        val digit: Parser<Char> = satisfy { c -> c.isDigit() }
+
+        val digits: Parser<String> = many(digit)
 
         val sign: Parser<String> = optional_c(char('+').orElse { char('-') })
 
@@ -65,7 +67,7 @@ class SomeParsers {
             sign_part -> digits.flatMap {
             int_part -> optional_s(char('.').skip { digits }).flatMap {
             frac_part -> optional_s(char('e').orElse { char('E') }.skip { sign }.flatMap {
-                exp_sign -> some(satisfy { c -> c.isDigit() }).flatMap {
+                exp_sign -> some(digit).flatMap {
                 exp_digits -> Parser.pure(exp_sign + exp_digits) } }).flatMap {
             exp_part -> if(int_part.isNotEmpty() || frac_part.isNotEmpty()){
                 Parser.pure((sign_part + int_part +

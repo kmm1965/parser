@@ -30,7 +30,9 @@ object SomeParsers {
 
   def optional_c(p: Parser[Char]): Parser[String] = optional_s(p.map(_.toString))
 
-  val digits: Parser[String] = many(satisfy(Character.isDigit))
+  val digit: Parser[Char] = satisfy(Character.isDigit)
+
+  val digits: Parser[String] = many(digit)
 
   val sign: Parser[String] = optional_c(char('+').orElse(char('-')))
 
@@ -40,7 +42,7 @@ object SomeParsers {
     sign_part => digits.flatMap(
     int_part => optional_s(char('.').skip(digits)).flatMap(
     frac_part => optional_s(char('e').orElse(char('E')).skip(sign).flatMap(
-      exp_sign => some(satisfy(Character.isDigit)).flatMap(
+      exp_sign => some(digit).flatMap(
       exp_digits => Parser.pure(exp_sign + exp_digits)))).flatMap(
     exp_part => if int_part.nonEmpty || frac_part.nonEmpty then
       Parser.pure((sign_part + int_part +

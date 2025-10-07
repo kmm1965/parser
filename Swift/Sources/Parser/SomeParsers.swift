@@ -49,23 +49,24 @@ func optional_c(_ p: Parser<Character>) -> Parser<String>{
 	return optional_s(p.map({ String($0) }))
 }
 
-let digits = many(satisfy({ $0.isNumber }))
+let digit = satisfy({ $0.isNumber })
+
+let digits = many(digit)
 
 let sign = optional_c(char("+").orElse({ () in char("-") }))
 
 let usign = optional_c(symbol("+").orElse({ () in symbol("-") }))
 
-let double: Parser<Double> = token(sign.flatMap({
-	(sign_part) in digits.flatMap({
+let double: Parser<Double> = token(digits.flatMap({
 	(int_part) in optional_s(char(".").skip({ digits })).flatMap({
 	(frac_part) in optional_s(char("e").orElse({ char("E") }).skip({ () in sign }).flatMap({
-		(exp_sign) in some(satisfy({ $0.isNumber })).flatMap({
+		(exp_sign) in some(digit).flatMap({
 		(exp_digits) in Parser.pure(exp_sign + exp_digits) }) })).flatMap({
 	(exp_part) in !int_part.isEmpty || !frac_part.isEmpty ?
-		Parser.pure(Double(sign_part + int_part +
+		Parser.pure(Double(int_part +
 			(!frac_part.isEmpty ? "." + frac_part : "") +
 			(!exp_part.isEmpty ? "e" + exp_part : "" ))!)
-		: Parser.empty()}) }) }) }))
+		: Parser.empty()}) }) }))
 
 func rest<A>(_ p: @escaping () -> Parser<A>, _ ff: @escaping (A) -> Parser<A>, _ op: Parser<(A, A) -> A>, _ a: A) -> Parser<A>{
 	return op.flatMap({ [p] (f) in p().flatMap { [ff, f] (b) in ff(f(a, b)) } }).orElse({ () in Parser.pure(a) })

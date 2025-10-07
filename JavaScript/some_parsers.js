@@ -8,7 +8,9 @@ let alnum = satisfy((c) => /[a-zA-Z0-9_]/.test(c));
 
 let name = (n) => (alnum.some().flatMap((s) => s === n ? Parser.pure(n) : Parser.empty())).token();
 
-let digits = satisfy(isDigit).many();
+let digit = satisfy(isDigit);
+
+let digits = digit.many();
 
 let sign = optional_s(char_('+').orElseGet(() => char_('-')));
 
@@ -18,7 +20,7 @@ let double_ = sign.flatMap(
     (sign_part) => digits.flatMap(
     (int_part) => optional_s(char_('.').skip(() => digits)).flatMap(
     (frac_part) => optional_s(char_('e').orElse(char_('E')).skip(() => sign).flatMap(
-      (exp_sign) => satisfy(isDigit).some().flatMap(
+      (exp_sign) => digit.some().flatMap(
       (exp_digits) => Parser.pure(exp_sign + exp_digits)))).flatMap(
     (exp_part) => int_part.length > 0 || frac_part.length > 0 ?
       Parser.pure(Number(sign_part + int_part +

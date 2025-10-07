@@ -54,9 +54,13 @@ unittest {
     assert(usign.parse(" - abc") == Just(tuple("-", "abc")));
 }
 
-Parser!string digits() pure {
+Parser!char digit() pure {
     import std.ascii: isDigit;
-    return *satisfy!(c => isDigit(c));
+    return satisfy!(c => isDigit(c));
+}
+
+Parser!string digits() pure {
+    return *digit();
 }
 
 @("digits unit test")
@@ -73,7 +77,7 @@ Parser!double double_() pure {
     return ~digits.and_then!(
         int_part  => (-(char_('.') >> digits)).and_then!(
         frac_part => (-(((char_('e') | char_('E')) >> sign).and_then!(
-               exp_sign   => (+satisfy!(c => isDigit(c))).and_then!(
+               exp_sign   => (+digit()).and_then!(
                exp_digits => Parser_pure(exp_sign ~ exp_digits)
             )))).and_then!(
         exp_part  => int_part.length > 0 || frac_part.length > 0 ?

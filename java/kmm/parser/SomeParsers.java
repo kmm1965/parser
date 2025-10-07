@@ -23,7 +23,9 @@ public class SomeParsers {
         return optional_s(p.map(Object::toString));
     }
 
-    public final static Parser<String> digits = Parser.satisfy(Character::isDigit).many();
+    public final static Parser<Character> digit = Parser.satisfy(Character::isDigit);
+
+    public final static Parser<String> digits = digit.many();
 
     public final static Parser<String> sign = optional_c(char_('+').orElse(char_('-')));
 
@@ -33,7 +35,7 @@ public class SomeParsers {
         sign_part -> digits.flatMap(
         int_part  -> optional_s(char_('.').skip(digits)).flatMap(
         frac_part -> optional_s(char_('e').orElse(char_('E')).skip(sign).flatMap(
-            exp_sign -> Parser.satisfy(Character::isDigit).some().flatMap(
+            exp_sign -> digit.some().flatMap(
             exp_digits -> Parser.pure(exp_sign + exp_digits)))).flatMap(
         exp_part -> !int_part.isEmpty() || !frac_part.isEmpty() ?
             Parser.pure(Double.valueOf(sign_part + int_part +

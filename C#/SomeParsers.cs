@@ -11,7 +11,9 @@
         public static Parser<string> Name(string n) => alnum.Some()
             .FlatMap(s => s.Equals(n) ? Parser<string>.Pure(n) : Parser<string>.Empty()).Token();
 
-        public static Parser<string> digits => Parser<char>.Satisfy(Char.IsDigit).Many();
+        public static Parser<char> digit => Parser<char>.Satisfy(Char.IsDigit);
+
+        public static Parser<string> digits => digit.Many();
 
         public static Parser<string> sign => Parser<char>.Optional(Char_('+') | Char_('-'));
         public static Parser<string> usign => Parser<char>.Optional(Symbol('+') | Symbol('-'));
@@ -21,7 +23,7 @@
         public static Parser<double> double_ => digits.FlatMap(
             int_part  => Parser<char>.Optional(Char_('.').Skip(digits)).FlatMap(
             frac_part => Parser<char>.Optional((Char_('e') | Char_('E')).Skip(sign).FlatMap(
-                exp_sign   => Parser<char>.Satisfy(Char.IsDigit).Some().FlatMap(
+                exp_sign   => digit.Some().FlatMap(
                 exp_digits => Parser<string>.Pure(exp_sign + exp_digits)))).FlatMap(
             exp_part => int_part.Length > 0 || frac_part.Length > 0 ?
                 Parser<double>.Pure(double.Parse(int_part +

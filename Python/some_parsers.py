@@ -14,21 +14,22 @@ def symbol(c: str) -> Parser[str]:
 def optional_s(p: Parser[str]) -> "Parser[str]":
     return p | Parser.pure("")
 
-digits = satisfy(str.isdigit).many()
+digit = satisfy(str.isdigit)
+
+digits = digit.many()
 
 sign = optional_s(char('+') | char('-'))
 
 usign = optional_s(symbol('+') | symbol('-'))
 
-double = sign.and_then(
-    lambda sign_part: digits.and_then(
+double = digits.and_then(
     lambda int_part: optional_s(char('.') >> digits).and_then(
     lambda frac_part: optional_s(((char('e') | char('E')) >> sign).and_then(
-        lambda exp_sign: satisfy(str.isdigit).some().and_then(
+        lambda exp_sign: digit.some().and_then(
         lambda exp_digits: Parser.pure(exp_sign + exp_digits)))).and_then(
     lambda exp_part:
-        Parser.pure(float(sign_part + int_part +
+        Parser.pure(float(int_part +
             ('.' + frac_part if len(frac_part) > 0 else "") +
             ('e' + exp_part if len(exp_part) > 0 else "")))
         if len(int_part) > 0 or len(frac_part) > 0
-        else Parser.empty())))).token()
+        else Parser.empty()))).token()

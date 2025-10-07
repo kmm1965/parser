@@ -146,7 +146,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(double.parse("1 abc").value, (1.0, "abc"))
         self.assertEqual(double.parse("1. abc").value, (1.0, "abc"))
         self.assertEqual(double.parse("1.23 abc").value, (1.23, "abc"))
-        self.assertEqual(double.parse("-1.23 abc").value, (-1.23, "abc"))
+        self.assertEqual(double.parse("-1.23 abc").value, None) #(-1.23, "abc"))
         self.assertEqual(double.parse(".23 abc").value, (0.23, "abc"))
         self.assertEqual(double.parse(" + 1.23 abc").value, None)
         self.assertEqual(double.parse("1.23e10abc").value, (1.23e10, "abc"))
@@ -175,6 +175,7 @@ class TestParser(unittest.TestCase):
 
     def test_calculator(self):
         self.assertEqual(calculate("72 - 7 - (1 - 2) * 3").value, (68.0, ""))
+        self.assertEqual(calculate("-72 - 7 - (1 - 2) * 3").value, (-76.0, ""))
         self.assertEqual(calculate(" 7.21e-1 - 7.3 - (1.5 - 2.2) * (-3.3)").value, (-8.889, ""))
         self.assertEqual(calculate("3^(1+1)^3").fmap(lambda p: (round(p[0]), p[1])).value, (6561.0, ""))
         self.assertEqual(calculate("sin(1+1)").value, (sin(2.0), ""))

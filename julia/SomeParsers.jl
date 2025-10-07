@@ -19,7 +19,9 @@ name(n::String)::Parser = ~and_then(+alnum, s -> s == n ? mreturn(Parser, n) : e
 
 double1::Parser = ~and_then(+satisfy(c -> isdigit(c)), s -> mreturn(Parser, parse(Float64, s)))
 
-digits::Parser = many(satisfy(c -> isdigit(c)))
+digit::Parser = satisfy(c -> isdigit(c))
+
+digits::Parser = many(digit)
 
 sign::Parser = optional_c(char('+') | char('-'))
 
@@ -28,7 +30,7 @@ usign::Parser = optional_c(symbol('+') | symbol('-'))
 double::Parser = ~and_then(digits,
     int_part  -> and_then(optional_s(char('.') >> digits),
     frac_part -> and_then(optional_s(and_then((char('e') | char('E')) >> sign,
-        exp_sign   -> and_then(+satisfy(c -> isdigit(c)),
+        exp_sign   -> and_then(+digit,
         exp_digits -> mreturn(Parser, exp_sign * exp_digits)))),
     exp_part  -> length(int_part) > 0 || length(frac_part) > 0 ?
         mreturn(Parser, parse(Float64, int_part *
