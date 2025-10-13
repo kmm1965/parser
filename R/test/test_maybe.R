@@ -8,9 +8,6 @@ test_maybe_map <- function() {
       expect_equal(nothing() %>% fmap(sin), nothing())
       expect_equal(just(1) %>% fmap(as.character), just("1"))
       expect_equal(nothing() %>% fmap(as.character), nothing())
-
-      #expect_equivalent(function_f(input x), expected_output_y)
-      #expect_identical(function_f(input x), expected_output_y)
     })
 }
 
@@ -23,7 +20,7 @@ test_maybe_and_then <- function() {
     {
       expect_equal(safe_sqrt(2.0), just(sqrt(2.0)))
       expect_equal(safe_sqrt(0.0), just(0.0))
-      expect_equal(safe_sqrt(~2.0), nothing())
+      expect_equal(safe_sqrt(-2.0), nothing())
 
       expect_equal(safe_log(2.0), just(log(2.0)))
       expect_equal(safe_log(0.0), nothing())
