@@ -25,8 +25,7 @@ parse <- function(.p, inp) {
 }
 
 parser_map <- function(.p, .f){
-  .p %>% assert_is_parser()
-  as_parser(function(inp) { .p %>% parse(inp) %>% fmap(function (pair) { list(.f(pair[[1]]), pair[[2]]) }) })
+  .p %>% parser_and_then(function(x) { pure(.f(x)) })
 }
 
 parser_and_then <- function(.p, .f){

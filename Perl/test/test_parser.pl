@@ -35,7 +35,7 @@ sub test_parser_andThen {
     my $i = shift;
     Parser->new(sub {
       Maybe->Just(Pair->new("$i" . shift, ""));
-    });
+    })
   };
 
   my $cancel = sub { Parser->empty };
@@ -84,7 +84,7 @@ sub test_satisfy {
     "satisfy(c == 'a')->parse(\"abc\") should be equal to Just(('a', \"bc\")");
   is(Parser->satisfy(sub { shift eq 'z' })->parse("abc"), Maybe->Nothing,
     "satisfy(c == 'z')->parse(\"abc\") should be equal to Nothing");
-  is(Parser->satisfy(sub{ shift eq 'a' })->parse(""), Maybe->Nothing,
+  is(Parser->satisfy(sub { shift eq 'a' })->parse(""), Maybe->Nothing,
     "satisfy(c == 'a')->parse(\"\") should be equal to Nothing");
 }
 

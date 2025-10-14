@@ -7,39 +7,39 @@ use warnings;
 
 sub char {
   my ($class, $c) = @_;
-  Parser->satisfy(sub { shift eq $c });
+  Parser->satisfy(sub { shift eq $c })
 }
 
 sub symbol {
   my ($class, $c) = @_;
-  SomeParsers->char($c)->token;
+  SomeParsers->char($c)->token
 }
 
 sub alnum {
-  Parser->satisfy(sub { shift =~ /\w/ });
+  Parser->satisfy(sub { shift =~ /\w/ })
 }
 
 sub name {
   my ($class, $n) = @_;
   alnum->some->andThen(sub {
-    (shift eq $n ? Parser->pure($n) : Parser->empty)->token;
-  });
+    (shift eq $n ? Parser->pure($n) : Parser->empty)->token
+  })
 }
 
 sub digit {
-  Parser->satisfy(sub { shift =~ /^\d$/ });
+  Parser->satisfy(sub { shift =~ /^\d$/ })
 }
 
 sub digits {
-  digit->many;
+  digit->many
 }
 
 sub sign {
-  ~(SomeParsers->char('+') | sub { SomeParsers->char('-') });
+  ~(SomeParsers->char('+') | sub { SomeParsers->char('-') })
 }
 
 sub usign {
-  ~(SomeParsers->symbol('+') | sub { SomeParsers->symbol('-') });
+  ~(SomeParsers->symbol('+') | sub { SomeParsers->symbol('-') })
 }
 
 sub double {
@@ -52,5 +52,5 @@ sub double {
       Parser->pure(0 + ($int_part .
         (length($frac_part) > 0 ? '.' . $frac_part : "") .
         (length($exp_part) > 0 ? 'e' . $exp_part : ""))) :
-      Parser->empty }) }) }))->token;
+      Parser->empty }) }) }))->token
 }

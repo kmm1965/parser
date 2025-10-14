@@ -12,11 +12,11 @@ use overload
 
 sub Just {
   my ($class, $value) = @_;
-  bless { value => $value, type => 'Just' }, $class;
+  bless { value => $value, type => 'Just' }, $class
 }
 
 sub Nothing {
-  bless { type => 'Nothing' }, shift;
+  bless { type => 'Nothing' }, shift
 }
 
 sub equals {

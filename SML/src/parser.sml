@@ -9,11 +9,11 @@ struct
 
   val 'a empty: 'a Parser = fn(inp) => Maybe.Nothing
 
-  fun map(p: 'a Parser, f: 'a -> 'b): 'b Parser =
-    fn (inp) => Maybe.map(p(inp), fn (p) => (f(#1 p), #2 p));
-
   fun flat_map(p: 'a Parser, f: 'a -> 'b Parser): 'b Parser =
     fn (inp) => Maybe.flat_map(p(inp), fn (p) => f(#1 p)(#2 p));
+
+  fun map(p: 'a Parser, f: 'a -> 'b): 'b Parser =
+    flat_map(p, fn (x) => pure(f x))
 
   fun skip(p: 'a Parser, f: unit -> 'b Parser): 'b Parser =
     flat_map(p, fn (_) => f());

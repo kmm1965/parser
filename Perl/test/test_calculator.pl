@@ -5,8 +5,6 @@ use warnings;
 use Test::More; #tests => 2; # Declare the number of expected tests
 use Math::Trig;
 
-use List::Util qw(reduce);
-
 sub calc {
  Calculator->calculate(shift);
 }
@@ -36,6 +34,8 @@ sub test_calculator {
     "calc(\" E ^ PI\") should be equal to Just(23.140692632779267, \"\"))");
   is(calc(" PI ^ E"), Maybe->Just(Pair->new(22.45915771836104, "")),
     "calc(\" PI ^ E\") should be equal to Just(22.45915771836104, \"\"))");
+  is(calc("LN10"), Maybe->Just(Pair->new(2.3025850929940457, "")),
+    "calc(\"LN10\") should be equal to Just(2.3025850929940457, \"\"))");
 }
 
 test_calculator;
