@@ -14,7 +14,7 @@ class Maybe(Generic[T]):
         return Maybe(val)
 
     def fmap(self, f: Callable[[T], U]) -> "Maybe[U]":
-        return self if self.value is None else Maybe.pure(f(self.value))
+        return self.and_then(lambda a: Maybe.pure(f(a)))
 
     def and_then(self, f: Callable[[T], U]) -> "Maybe[U]":
         return self if self.value is None else f(self.value)
@@ -25,6 +25,5 @@ class Maybe(Generic[T]):
     def __or__(self, els) -> "Maybe[T]":
         return self.or_else(els)
         
-    # def __mul__(self, m: Callable[[], Maybe[U]]) -> "Maybe[U]":
     def __mul__(self, m) -> "Maybe[U]":
         return self.and_then(lambda f: (m() if callable(m) else m).fmap(f))

@@ -5,7 +5,7 @@ function Maybe:new(value)
     obj.value = value
 
   function obj:map(f)
-    return self.value == nil and self or Maybe:new(f(self.value))
+    return self:flat_map(function (a) return Maybe:new(f(a)) end)
   end
 
   function obj:flat_map(f)

@@ -5,6 +5,8 @@ namespace MonadParser\Parser;
 
 final class Calculator
 {
+    public  $add, $sub, $mul, $div, $pow, $funcs, $consts;
+
     public function __construct()
     {
         $this->add = Calculator::op2('+', function ($x, $y){ return $x + $y; });
@@ -28,34 +30,20 @@ final class Calculator
             Calculator::def_object("sqr", function ($x){ return $x * $x; })
         ]);
 
-        $this->M_E        = 2.71828182845904523536;
-        $this->M_PI       = 3.14159265358979323846;
-        $this->M_LOG2E    = 1.44269504088896340736;  // log2(e)
-        $this->M_LOG10E   = 0.434294481903251827651; // log10(e)
-        $this->M_LN2      = 0.693147180559945309417; // ln(2)
-        $this->M_LN10     = 2.30258509299404568402;  // ln(10)
-        $this->M_PI_2     = 1.57079632679489661923;  // pi/2
-        $this->M_PI_4     = 0.785398163397448309616; // pi/4
-        $this->M_1_PI     = 0.318309886183790671538; // 1/pi
-        $this->M_2_PI     = 0.636619772367581343076; // 2/pi
-        $this->M_2_SQRTPI = 1.12837916709551257390;  // 2/sqrt(pi)
-        $this->M_SQRT2    = 1.41421356237309504880;  // sqrt(2)
-        $this->M_SQRT1_2  = 0.707106781186547524401; // 1/sqrt(2)
-
         $this->consts = Calculator::fold([
-            Calculator::def_object("E",        $this->M_E),
-            Calculator::def_object("PI",       $this->M_PI),
-            Calculator::def_object("LOG2E",    $this->M_LOG2E),
-            Calculator::def_object("LOG10E",   $this->M_LOG10E),
-            Calculator::def_object("LN2",      $this->M_LN2),
-            Calculator::def_object("LN10",     $this->M_LN10),
-            Calculator::def_object("PI_2",     $this->M_PI_2),
-            Calculator::def_object("PI_4",     $this->M_PI_4),
-            Calculator::def_object("1_PI",     $this->M_1_PI),
-            Calculator::def_object("2_PI",     $this->M_2_PI),
-            Calculator::def_object("2_SQRTPI", $this->M_2_SQRTPI),
-            Calculator::def_object("SQRT2",    $this->M_SQRT2),
-            Calculator::def_object("SQRT1_2",  $this->M_SQRT1_2)
+            Calculator::def_object("E",        2.71828182845904523536),
+            Calculator::def_object("PI",       3.14159265358979323846),
+            Calculator::def_object("LOG2E",    1.44269504088896340736),
+            Calculator::def_object("LOG10E",   0.434294481903251827651), // log10(e)
+            Calculator::def_object("LN2",      0.693147180559945309417), // ln(2)
+            Calculator::def_object("LN10",     2.30258509299404568402),  // ln(10)
+            Calculator::def_object("PI_2",     1.57079632679489661923),  // pi/2
+            Calculator::def_object("PI_4",     0.785398163397448309616), // pi/4
+            Calculator::def_object("1_PI",     0.318309886183790671538), // 1/pi
+            Calculator::def_object("2_PI",     0.636619772367581343076), // 2/pi
+            Calculator::def_object("2_SQRTPI", 1.12837916709551257390),  // 2/sqrt(pi)
+            Calculator::def_object("SQRT2",    1.41421356237309504880),  // sqrt(2)
+            Calculator::def_object("SQRT1_2",  0.707106781186547524401)  // 1/sqrt(2)
         ]);
     }
     

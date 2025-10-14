@@ -12,7 +12,7 @@ class Maybe {
   }
 
   map(fn){
-    return this.isNothing() ? this : Maybe.Just(fn(this.__value));
+    return this.flatMap((a) => Maybe.Just(fn(a)));
   }
   
   flatMap(fn){

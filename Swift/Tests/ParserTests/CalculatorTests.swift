@@ -7,6 +7,7 @@ import Foundation
 	let calc = Calculator()
 
 	#expect(calc.calculate("72 - 7 - (1 - 2) * 3")! == (68.0, ""))
+	#expect(calc.calculate("-72 - 7 - (1 - 2) * 3")! == (-76.0, ""))
 	#expect(calc.calculate(" 7.21e-1 - 7.3 - (1.5 - 2.2) * (-3.3)")! == (-8.889, ""))
 	#expect(calc.calculate("3^(1+1)^3").map({ (round($0.0), $0.1) })! == (6561.0, ""))
 	#expect(calc.calculate("sin(1+1)")! == (sin(2.0), ""))

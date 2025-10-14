@@ -11,7 +11,7 @@ class Parser
 
     # Functor
     def transform(&f)
-        Parser.new { |inp| self.parse(inp).transform { |pair| [ f.call(pair[0]), pair[1] ] } }
+        self.and_then { |x| Parser.pure(f.call(x)) }
     end
 
     def transform_(f)

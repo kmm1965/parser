@@ -8,19 +8,20 @@ type Parser<'A>(unp: string -> Option<'A * string>) =
 
     member this.Parse (inp: string): Option<'A * string> = this.unp(inp)
 
-    // Functor
-    member this.Map (f: 'A -> 'B) = Parser(fun inp -> this.Parse inp |> (</>) (fun (pair: 'A * string) -> (f(fst pair), snd pair)))
-
     // Monad
-    member this.FlatMap (f: 'A -> Parser<'B>): Parser<'B> = Parser(fun inp -> this.Parse inp >>= (fun (pair: 'A * string) -> f(fst pair).Parse(snd pair)))
+    member this.FlatMap (f: 'A -> Parser<'B>) = Parser<'B>(fun inp -> this.Parse inp >>= (fun (pair: 'A * string) -> f(fst pair).Parse(snd pair)))
 
-    member this.Skip (p: Parser<'B>): Parser<'B> = this.FlatMap(fun unit -> p)
+    member this.Skip (fp: unit -> Parser<'B>) = this.FlatMap(fun _ -> fp())
 
-    member this.Skip (fp: unit -> Parser<'B>): Parser<'B> = this.FlatMap(fun unit -> fp())
+    member this.Skip (p: Parser<'B>) = this.Skip(fun unit -> p)
 
     // Applicative
     static member Pure (x: 'A) = Parser(fun inp -> Some((x, inp)))
 
+    // Functor
+    member this.Map (f: 'A -> 'B): Parser<'B> = this.FlatMap(fun a -> Parser<'B>.Pure(f a))
+
+    // Applicative
     static member Apply (pf: Parser<'A -> 'B>) (q: unit -> Parser<'A>): Parser<'B> = pf.FlatMap(fun f -> q().Map f)
 
     // Alternative

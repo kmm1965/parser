@@ -23,8 +23,7 @@ Maybe!T Nothing(T)() pure {
 auto transform(alias func, T)(Optional!T opt) pure
     if (is (typeof(func(T.init))))
 {
-    alias U = typeof(func(T.init));
-    return !opt.empty ? Just(func(opt.front)) : Nothing!U;
+    return opt.and_then!(x => Just(func(x)));
 }
 
 ///

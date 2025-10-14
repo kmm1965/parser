@@ -20,7 +20,7 @@ my $div = op2('/', sub { shift() / shift });
 my $pow = op2('^', sub { exp(log(shift) * shift) });
 
 sub fold {
-  (reduce { $a->orElseVal($b) } Parser->empty, @_)->token
+  (reduce { $a->orElseVal($b) } @_)->token
 }
 
 sub defObject {

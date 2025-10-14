@@ -3,8 +3,12 @@ class Parser {
     this.parse = p;
   }
 
+  static pure(x){
+    return new Parser((inp) => Maybe.Just([x, inp]));
+  }
+
   map(fn){
-    return new Parser((inp) => this.parse(inp).map(([a, s]) => [fn(a), s]));
+    return this.flatMap((a) => Parser.pure(fn(a)));
   }
 
   flatMap(fn){
@@ -27,10 +31,6 @@ class Parser {
     return this.flatMap((f) => fp().map(f));
   }
   
-  static pure(x){
-    return new Parser((inp) => Maybe.Just([x, inp]));
-  }
-
   static empty(){
     return new Parser((_) => Maybe.Nothing());
   }

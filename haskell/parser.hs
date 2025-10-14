@@ -13,14 +13,14 @@ parse (P p) = p
 
 instance Functor Parser where
     -- fmap :: (a -> b) -> Parser a -> Parser b
-    fmap f p = P (fmap (Data.Bifunctor.first f) . parse p)
+    fmap f p = p >>= pure . f
 
 instance Applicative Parser where
     -- pure :: a -> Parser a
     pure x = P $ \inp -> Just (x, inp)
 
     -- (<*>) :: Parser (a -> b) -> Parser a -> Parser b
-    pf <*> q = do f <- pf; f <$> q
+    pf <*> q = pf >>= flip fmap q
 
 instance Monad Parser where
     -- (>>=) :: Parser a -> (a -> Parser b) -> Parser b

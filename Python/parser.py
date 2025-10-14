@@ -20,7 +20,7 @@ class Parser(Generic[T]):
         
     # Functor
     def fmap(self, f: Callable[[T], U]) -> "Parser[U]":
-        return Parser(lambda inp: self.parse(inp).fmap(lambda pair: (f(pair[0]), pair[1])))
+        return self.and_then(lambda a: Parser.pure(f(a)))
 
     # Monad
     def and_then(self, f: Callable[[T], U]) -> "Parser[U]":

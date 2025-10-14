@@ -16,15 +16,13 @@ func Pure[A any](a A) Maybe[A] {
     return Just(a)
 }
 
-func Map[A, B any](x Maybe[A], f func(A) B) Maybe[B] {
-    if x.IsSome(){
-        return Just(f(x.Get()))
-    } else { return Nothing[B]() }
+func Map[A, B any](m Maybe[A], f func(A) B) Maybe[B] {
+    return FlatMap(m, func (a A) Maybe[B] { return Just(f(a)) })
 }
 
-func FlatMap[A, B any](x Maybe[A], f func(A) Maybe[B]) Maybe[B] {
-    if x.IsSome(){
-        return f(x.Get())
+func FlatMap[A, B any](m Maybe[A], f func(A) Maybe[B]) Maybe[B] {
+    if m.IsSome(){
+        return f(m.Get())
     } else { return Nothing[B]() }
 }
 

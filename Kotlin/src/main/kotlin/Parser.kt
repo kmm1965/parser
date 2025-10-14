@@ -5,7 +5,7 @@ import arrow.core.orElse
 
 class Parser<A>(val parse: (String) -> Option<Pair<A, String>>) {
     fun <B> map(f: (A) -> B) : Parser<B> {
-        return Parser { inp -> this.parse(inp).map { (a, out) -> Pair(f(a), out) } }
+        return flatMap { a -> pure(f(a)) }
     }
 
     fun <B> flatMap(f: (A) -> Parser<B>) : Parser<B> {

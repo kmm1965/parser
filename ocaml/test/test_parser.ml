@@ -205,7 +205,7 @@ let test_chainlr1 () =
     test_float_pair "parse pexpr \"7abc\"" (Parser.parse pexpr "7abc") (just (7., "abc"));
     test_float_pair "parse pexpr \" 7 - 1 - 2 abc\"" (Parser.parse pexpr " 7 - 1 - 2 abc") (just (4., "abc"));
     test_float_pair "parse pexpr \" 7 - 1 + 2 - 3 abc\"" (Parser.parse pexpr " 7 - 1 + 2 - 3 abc") (just (5., "abc"));
-    test_float_pair "parse pexpr \"abc\"" (Parser.parse expr "abc") nothing;
+    test_float_pair "parse pexpr \"abc\"" (Parser.parse pexpr "abc") nothing;
     test_float_pair "parse (chainr1 double pow) \"3 ^ 2 ^ 3 abc\"" (Parser.parse (chainr1 double pow) "3 ^ 2 ^ 3 abc") (just (6561., "abc"))
 
 let test_some_parsers () =

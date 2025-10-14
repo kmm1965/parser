@@ -18,9 +18,7 @@ struct Maybe<A> {
 	}
 
 	func map<B>(_ f: (A) -> B) -> Maybe<B> {
-		if let v: A = value {
-			return Maybe<B>.Just(f(v))
-		} else { return Maybe<B>.Nothing() }
+        return self.flatMap({ [f] in Maybe<B>.Just(f($0)) })
 	}
 
 	func flatMap<B>(_ f: (A) -> Maybe<B>) -> Maybe<B>{

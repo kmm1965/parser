@@ -11,11 +11,7 @@ function Parser:new(unp)
   end
 
   function obj:map(f)
-    return Parser:new(function (inp)
-      return self:parse(inp):map(function (p)
-        return {f(p[1]), p[2]}
-      end)
-    end)
+    return self:flat_map(function (a) return Parser.pure(f(a)) end)
   end
 
   function obj:flat_map(f)

@@ -1,14 +1,15 @@
 ﻿module Maybe
 
 // Maybe (Option) support
-// Functor
-let inline (</>) (f: 'A -> 'B) (x: Option<'A>) = if x.IsSome then Some(f x.Value) else None
-
-// Applicative
-let inline (<*>) (f: Option<'A -> 'B>) (x: Option<'A>) = if f.IsSome then f.Value </> x else None
 
 // Monad
-let inline (>>=) (x: Option<'A>) (f: 'A -> Option<'B>) = if x.IsSome then f x.Value else None
+let inline (>>=) (m: Option<'A>) (f: 'A -> Option<'B>) = if m.IsSome then f m.Value else None
+
+// Functor
+let inline (</>) (f: 'A -> 'B) (m: Option<'A>) = m >>= fun x -> Some(f x)
+
+// Applicative
+let inline (<*>) (mf: Option<'A -> 'B>) (m: Option<'A>) = mf >>= fun f -> f </> m
 
 // Alternative
-let inline (<|>) (x: Option<'A>) (fy: unit -> Option<'A>) = if x.IsSome then x else fy()
+let inline (<|>) (m: Option<'A>) (fy: unit -> Option<'A>) = if m.IsSome then m else fy()

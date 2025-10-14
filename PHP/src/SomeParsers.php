@@ -40,7 +40,7 @@ final class SomeParsers
     }
 
     public static function digits() : Parser {
-        return SomeParsers::digit->many();
+        return SomeParsers::digit()->many();
     }
 
     public static function sign() : Parser {
@@ -65,7 +65,7 @@ final class SomeParsers
                 return SomeParsers::optional_s(SomeParsers::char_('e')->orElse(SomeParsers::char_('E'))->skip(
                         function (){ return SomeParsers::sign(); })->flatMap(
                     function ($exp_sign){
-                        return SomeParsers::digit->some()->flatMap(
+                        return SomeParsers::digit()->some()->flatMap(
                     function ($exp_digits) use($exp_sign){
                         return Parser::pure($exp_sign . $exp_digits); }); }) )->flatMap(
             function ($exp_part) use($sign_part, $int_part, $frac_part){

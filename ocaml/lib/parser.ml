@@ -4,15 +4,15 @@ type 'a parser = P of (string -> ('a * string) maybe)
 
 let parse (P unp) inp = unp inp
 
-let (<$>) f p = P (fun inp -> (fun (x, out) -> (f x, out)) <$> (parse p inp))
-
-let fmap f p = f <$> p
-
 let pure x = P (fun inp -> just (x, inp))
 
 let (>>=) p f = P (fun inp -> (parse p inp) >>= (fun (x, out) -> parse (f x) out))
 
 let bind p f = p >>= f
+
+let (<$>) f p = p >>= fun a -> pure(f a)
+
+let fmap f p = f <$> p
 
 let (<*>) fp p = fp >>= (fun f -> f <$> p ())
 

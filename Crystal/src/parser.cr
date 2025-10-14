@@ -20,7 +20,7 @@ class Parser(T)
   end
 
   def map(&f : T -> U) : Parser(U) forall U
-    Parser(U).new{ |inp| self.parse(inp).map{ |p| {f.call(p[0]), p[1]} } }
+    self.flat_map{ |a| Parser.pure(f.call(a)) }
   end
 
   def flat_map(&f : T -> Parser(U)) : Parser(U) forall U

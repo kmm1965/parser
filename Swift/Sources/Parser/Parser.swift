@@ -6,7 +6,7 @@ struct Parser<A> {
 	}
 
 	func map<B>(_ f: @escaping (A) -> B) -> Parser<B> {
-		return Parser<B>({ [self] (inp) in self.parse(inp).map({ (f($0.0), $0.1) }) })
+		return self.flatMap({ [f] in Parser<B>.pure(f($0)) })
 	}
 
 	func flatMap<B>(_ f: @escaping (A) -> Parser<B>) -> Parser<B> {

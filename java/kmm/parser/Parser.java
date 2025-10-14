@@ -19,7 +19,7 @@ public class Parser<A> {
 
     // Functor
     public <B> Parser<B> map(Function<? super A, B> f){
-        return new Parser<>(inp -> parse(inp).map(pair -> new Pair<>(f.apply(pair.getKey()), pair.getValue())));
+        return flatMap(a -> pure(f.apply(a)));
     }
 
     // Applicative
@@ -72,17 +72,17 @@ public class Parser<A> {
         Optional.empty());
 
     public static Parser<Character> satisfy(Predicate<Character> f){
-        return anyChar.flatMap(c -> f.test(c) ? Parser.pure(c) : Parser.empty());
+        return anyChar.flatMap(c -> f.test(c) ? pure(c) : empty());
     }
 
     public final static Parser<String> spaces = satisfy(Character::isWhitespace).many();
 
     public static <Open, Close, A> Parser<A> between(Parser<Open> open, Parser<Close>close, Parser<A> p){
-        return open.skip(p).flatMap(x -> close.skip(Parser.pure(x)));
+        return open.skip(p).flatMap(x -> close.skip(pure(x)));
     }
 
     public static <Open, Close, A> Parser<A> between(Parser<Open> open, Parser<Close>close, Supplier<Parser<A>> fp){
-        return open.skip(fp).flatMap(x -> close.skip(Parser.pure(x)));
+        return open.skip(fp).flatMap(x -> close.skip(pure(x)));
     }
 
     public Parser<A> token(){
@@ -92,7 +92,7 @@ public class Parser<A> {
     private static <A> Parser<A> rest(Supplier<Parser<A>> fval, Function<A, Parser<A>> ff, Parser<BinaryOperator<A>> op, A a){
         return op
             .flatMap(f -> fval.get().flatMap(b -> ff.apply(f.apply(a, b))))
-            .orElse(Parser.pure(a));
+            .orElse(pure(a));
     }
 
     private Parser<A> rest_l(Parser<BinaryOperator<A>> op, A a){

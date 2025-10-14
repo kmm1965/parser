@@ -15,11 +15,7 @@ type Parser[A any] struct {
 
 // Functor
 func Map[A, B any](p Parser[A], f func(A) B) Parser[B] {
-    return Parser[B]{ func (inp string) ParserResult[B] {
-        return maybe.Map(p.Parse(inp), func (pair ParserPair[A]) ParserPair[B] {
-            return ParserPair[B]{ f(pair.Key), pair.Value }
-        })
-    }}
+    return FlatMap(p, func (a A) Parser[B] { return Pure(f(a)) })
 }
 
 // Applicative

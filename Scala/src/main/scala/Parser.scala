@@ -1,5 +1,5 @@
 case class Parser[A](parse : String => Option[(A, String)]) {
-  def map[B](f: A => B): Parser[B] = Parser[B](inp => parse(inp).map((a, s) => (f(a), s)))
+  def map[B](f: A => B): Parser[B] = flatMap(a => Parser.pure(f(a)))
 
   def flatMap[B](f: A => Parser[B]): Parser[B] = Parser[B](inp => parse(inp).flatMap((a, s) => f(a).parse(s)))
 

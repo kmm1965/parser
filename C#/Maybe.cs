@@ -48,9 +48,7 @@
 
         public TResult Match<TResult>(Func<T, TResult> some, Func<TResult> none) => hasValue ? some(value) : none();
 
-        public Maybe<TResult> Map<TResult>(Func<T, TResult> mapping) => Match(
-            some: value => Maybe.Some(mapping(value)),
-            none: Maybe.None<TResult>);
+        public Maybe<TResult> Map<TResult>(Func<T, TResult> f) => FlatMap(a => Maybe<TResult>.Pure(f(a)));
 
         public Maybe<TResult> FlatMap<TResult>(Func<T, Maybe<TResult>> mapping) => Match(
             some: mapping,

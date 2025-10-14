@@ -8,7 +8,7 @@
 
 ; Functor
 (define (Maybe_fmapr m f)
-    (if (IsJust? m) (Just (f (car m))) Nothing)
+    (Maybe_and_then m [\\ (x) (Just (f x))])
 )
 
 ; Monad

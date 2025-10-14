@@ -7,13 +7,7 @@
 
 ; Functor
 (define (<$> f p)
-    [\\ (inp)
-        (Maybe_fmapr (parse p inp)
-            [\\ (pair)
-                (list (f (car pair)) (cadr pair))
-            ]
-        )
-    ]
+    (! p >>= [\\ (x) (Parser_pure (f x))])
 )
 
 ; Monad

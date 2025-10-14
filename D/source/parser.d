@@ -102,11 +102,7 @@ nothrow unittest {
 auto transform(alias func, T)(const Parser!T p) pure
     if (is (typeof(func(T.init))))
 {
-    import maybe: transform;
-
-    alias U = typeof(func(T.init));
-    auto f = (Tuple!(T, string) pair) => tuple(func(pair[0]), pair[1]);
-    return new Parser!U(inp => p.parse(inp).transform!f);
+    return p.and_then!(x => Parser_pure(func(x)));
 }
 
 @("Parser Functor unit tests")

@@ -67,14 +67,10 @@ struct Parser {
 
     // instance Functor Parser where
     //    fmap :: (a -> b) -> Parser a -> Parser b
-    //    fmap f p = P (\inp -> (\(x, out) -> (f x, out)) <$> parse p inp)
+    //    fmap f p = p >>= pure . f
     template<typename B>
     Parser<B> transform(std::function<B(A const&)> const& f) const {
-        return Parser<B>([self = *this, f](std::string const& inp){
-            return self.parse(inp).transform([f](pair_t const& p){
-                return std::make_pair(f(p.first), p.second);
-            });
-        });
+        return and_then(_([f](A const& a){ return Parser<B>::pure(f(a)); }));
     }
 
     template<typename B>

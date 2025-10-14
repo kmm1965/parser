@@ -7,6 +7,8 @@ use MonadParser\Maybe\Maybe;
 
 final class Parser
 {
+    public $unp;
+
     public function __construct(callable $unp){
         $this->unp = $unp;
     }
@@ -19,10 +21,8 @@ final class Parser
      * Functor implemenattion
      */
     public function map(callable $f) : Parser {
-        return new Parser(function (string $inp) use($f){
-            return $this->parse($inp)->map(function ($pair) use($f){
-                return [$f($pair[0]), $pair[1]];
-            });
+        return $this->flatMap(function ($x) use ($f){
+            return Parser::pure($f($x));
         });
     }
 
