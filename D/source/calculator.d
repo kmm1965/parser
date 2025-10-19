@@ -11,27 +11,49 @@ Parser!T def_object(T)(string n, T x) pure {
     return name(n) >> Parser_pure(x);
 }
 
-auto func() pure
+auto funcs() pure
 {
-    import std.math: sin, cos, asin, acos, sinh, cosh, asinh, acosh, tan, atan, log, exp, sqrt;
+    import std.math: sin, cos, asin, acos, sinh, cosh, asinh, acosh, tan, atan, log, log10, exp, sqrt;
+    import std.math.constants: LN10;
 
     return def_object("sin",   (double x) => sin(x)) |
            def_object("cos",   (double x) => cos(x)) |
-           def_object("asin",  (double x) => acos(x)) |
+           def_object("asin",  (double x) => asin(x)) |
            def_object("acos",  (double x) => acos(x)) |
            def_object("sinh",  (double x) => sinh(x)) |
            def_object("cosh",  (double x) => cosh(x)) |
-           def_object("asinh", (double x) => acosh(x)) |
+           def_object("asinh", (double x) => asinh(x)) |
            def_object("acosh", (double x) => acosh(x)) |
            def_object("tan",   (double x) => tan(x)) |
            def_object("atan",  (double x) => atan(x)) |
            def_object("log",   (double x) => log(x)) |
+           def_object("log10", (double x) => log10(x)) |
            def_object("exp",   (double x) => exp(x)) |
            def_object("sqrt",  (double x) => sqrt(x)) |
            def_object("sqr",   (double x) => sqr(x));
 }
 
-auto _const() pure
+@("funcs unit test")
+unittest {
+    import std.math: sin, cos, asin, acos, sinh, cosh, asinh, acosh, tan, atan, log, log10, exp, sqrt;
+
+    assert(calculate("sin(2.0)") == Just(tuple(sin(2.0), "")));
+    assert(calculate("cos(2.0)") == Just(tuple(cos(2.0), "")));
+    assert(calculate("asin(0.5)") == Just(tuple(asin(0.5), "")));
+    assert(calculate("acos(0.5)") == Just(tuple(acos(0.5), "")));
+    assert(calculate("sinh(2.0)") == Just(tuple(sinh(2.0), "")));
+    assert(calculate("cosh(2.0)") == Just(tuple(cosh(2.0), "")));
+    assert(calculate("asinh(2.0)") == Just(tuple(asinh(2.0), "")));
+    assert(calculate("acosh(2.0)") == Just(tuple(acosh(2.0), "")));
+    assert(calculate("tan(2.0)") == Just(tuple(tan(2.0), "")));
+    assert(calculate("log(2.0)") == Just(tuple(log(2.0), "")));
+    assert(calculate("log10(2.0)") == Just(tuple(log10(2.0), "")));
+    assert(calculate("exp(2.0)") == Just(tuple(exp(2.0), "")));
+    assert(calculate("sqrt(2.0)") == Just(tuple(sqrt(2.0), "")));
+    assert(calculate("sqr(2.0)") == Just(tuple(4.0, "")));
+}
+
+auto consts() pure
 {
     import std.math.constants: E, LOG2E, LOG10E, LN2, LN10, PI, PI_2, PI_4, M_1_PI, M_2_PI, M_2_SQRTPI, SQRT2, SQRT1_2;
 
@@ -48,6 +70,37 @@ auto _const() pure
            def_object("2_SQRTPI", cast(double)M_2_SQRTPI) |
            def_object("SQRT2",    cast(double)SQRT2) |
            def_object("SQRT1_2",  cast(double)SQRT1_2);
+}
+
+@("consts unit test")
+unittest {
+    import std.math.constants: E, LOG2E, LOG10E, LN2, LN10, PI, PI_2, PI_4, M_1_PI, M_2_PI, M_2_SQRTPI, SQRT2, SQRT1_2;
+    import std.math: log, sqrt;
+
+    assert(calculate("E") == Just(tuple(cast(double)E, "")));
+    assert(calculate("LOG2E") == Just(tuple(cast(double)LOG2E, "")));
+    assert(calculate("LOG2E") == Just(tuple(1 / cast(double)LN2, "")));
+    assert(calculate("LOG10E") == Just(tuple(cast(double)LOG10E, "")));
+    assert(calculate("LOG10E") == Just(tuple(1 / cast(double)LN10, "")));
+    assert(calculate("LN2") == Just(tuple(cast(double)LN2, "")));
+    assert(calculate("LN2") == Just(tuple(log(2.0), "")));
+    assert(calculate("LN10") == Just(tuple(cast(double)LN10, "")));
+    assert(calculate("LN10") == Just(tuple(log(10.0), "")));
+    assert(calculate("PI") == Just(tuple(cast(double)PI, "")));
+    assert(calculate("PI_2") == Just(tuple(cast(double)PI_2, "")));
+    assert(calculate("PI_2") == Just(tuple(cast(double)PI / 2, "")));
+    assert(calculate("PI_4") == Just(tuple(cast(double)PI_4, "")));
+    assert(calculate("PI_4") == Just(tuple(cast(double)PI / 4, "")));
+    assert(calculate("1_PI") == Just(tuple(cast(double)M_1_PI, "")));
+    assert(calculate("1_PI") == Just(tuple(1 / cast(double)PI, "")));
+    assert(calculate("2_PI") == Just(tuple(cast(double)M_2_PI, "")));
+    assert(calculate("2_PI") == Just(tuple(2 / cast(double)PI, "")));
+    assert(calculate("2_SQRTPI") == Just(tuple(cast(double)M_2_SQRTPI, "")));
+    assert(calculate("2_SQRTPI") == Just(tuple(2 / sqrt(cast(double)PI), "")));
+    assert(calculate("SQRT2") == Just(tuple(cast(double)SQRT2, "")));
+    assert(calculate("SQRT2") == Just(tuple(sqrt(2.0), "")));
+    assert(calculate("SQRT1_2") == Just(tuple(cast(double)SQRT1_2, "")));
+    assert(calculate("SQRT1_2") == Just(tuple(sqrt(0.5), "")));
 }
 
 auto op2(alias func)(char c) pure {
@@ -90,8 +143,8 @@ Parser!double factor() pure {
 
 Parser!double factor0() pure {
     return expr_in_brackets |
-           func * (() => expr_in_brackets) |
-           _const |
+           funcs * (() => expr_in_brackets) |
+           consts |
            double_;
 }
 

@@ -16,24 +16,26 @@ final class Calculator
         $this->pow = Calculator::op2('^', function ($x, $y){ return exp($y * log($x)); });
         
         $this->funcs = Calculator::fold([
-            Calculator::def_object("sin", function ($x){ return sin($x); }),
-            Calculator::def_object("cos", function ($x){ return cos($x); }),
-            Calculator::def_object("asin", function ($x){ return asin($x); }),
-            Calculator::def_object("acos", function ($x){ return acos($x); }),
-            Calculator::def_object("sinh", function ($x){ return sinh($x); }),
-            Calculator::def_object("cosh", function ($x){ return cosh($x); }),
-            Calculator::def_object("tan", function ($x){ return tan($x); }),
-            Calculator::def_object("log", function ($x){ return log($x); }),
+            Calculator::def_object("sin",   function ($x){ return sin($x); }),
+            Calculator::def_object("cos",   function ($x){ return cos($x); }),
+            Calculator::def_object("asin",  function ($x){ return asin($x); }),
+            Calculator::def_object("acos",  function ($x){ return acos($x); }),
+            Calculator::def_object("sinh",  function ($x){ return sinh($x); }),
+            Calculator::def_object("cosh",  function ($x){ return cosh($x); }),
+            Calculator::def_object("asinh", function ($x){ return asinh($x); }),
+            Calculator::def_object("acosh", function ($x){ return acosh($x); }),
+            Calculator::def_object("tan",   function ($x){ return tan($x); }),
+            Calculator::def_object("log",   function ($x){ return log($x); }),
             Calculator::def_object("log10", function ($x){ return log10($x); }),
-            Calculator::def_object("exp", function ($x){ return exp($x); }),
-            Calculator::def_object("sqrt", function ($x){ return sqrt($x); }),
-            Calculator::def_object("sqr", function ($x){ return $x * $x; })
+            Calculator::def_object("exp",   function ($x){ return exp($x); }),
+            Calculator::def_object("sqrt",  function ($x){ return sqrt($x); }),
+            Calculator::def_object("sqr",   function ($x){ return $x * $x; })
         ]);
 
         $this->consts = Calculator::fold([
             Calculator::def_object("E",        2.71828182845904523536),
             Calculator::def_object("PI",       3.14159265358979323846),
-            Calculator::def_object("LOG2E",    1.44269504088896340736),
+            Calculator::def_object("LOG2E",    1.44269504088896340736),  // log2(e)
             Calculator::def_object("LOG10E",   0.434294481903251827651), // log10(e)
             Calculator::def_object("LN2",      0.693147180559945309417), // ln(2)
             Calculator::def_object("LN10",     2.30258509299404568402),  // ln(10)

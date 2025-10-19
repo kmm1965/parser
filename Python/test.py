@@ -4,7 +4,7 @@ from maybe import Maybe
 from parser import Parser, anyChar, satisfy, spaces, between
 from some_parsers import char, optional_s, symbol, alnum, name, sign, usign, digits, double, symbol
 from calculator import calculate
-from math import sin, sqrt, log, exp
+from math import sin, cos, asin, acos, sinh, cosh, asinh, acosh, tan, log, log10, exp, sqrt, pi, e
 
 def safe_sqrt(x):
     return Maybe.pure(sqrt(x)) if x >= 0 else Maybe.empty()
@@ -173,6 +173,38 @@ class TestParser(unittest.TestCase):
 
         self.assertEqual(double.chainr1(pow).parse("3 ^ 2 ^ 3 abc").fmap(lambda p: (round(p[0]), p[1])).value, (6561.0, "abc"))
 
+    def test_funcs(self):
+        self.assertEqual(calculate("sin(2.0)").value, (sin(2.0), ""))
+        self.assertEqual(calculate("cos(2.0)").value, (cos(2.0), ""))
+        self.assertEqual(calculate("asin(0.5)").value, (asin(0.5), ""))
+        self.assertEqual(calculate("acos(0.5)").value, (acos(0.5), ""))
+        self.assertEqual(calculate("sinh(2.0)").value, (sinh(2.0), ""))
+        self.assertEqual(calculate("cosh(2.0)").value, (cosh(2.0), ""))
+        self.assertEqual(calculate("asinh(2.0)").value, (asinh(2.0), ""))
+        self.assertEqual(calculate("acosh(2.0)").value, (acosh(2.0), ""))
+        self.assertEqual(calculate("tan(2.0)").value, (tan(2.0), ""))
+        self.assertEqual(calculate("log(2.0)").value, (log(2.0), ""))
+        self.assertEqual(calculate("log10(2.0)").value, (log10(2.0), ""))
+        self.assertEqual(calculate("exp(2.0)").value, (exp(2.0), ""))
+        self.assertEqual(calculate("sqrt(2.0)").value, (sqrt(2.0), ""))
+        self.assertEqual(calculate("sqr(2.0)").value, (4.0, ""))
+
+    def test_consts(self):
+        self.assertEqual(calculate("E").value, (e, ""))
+        self.assertEqual(calculate("LOG2E").value, (1/log(2), ""))
+        self.assertEqual(calculate("LOG10E").value, (0.4342944819032518, ""))
+        #self.assertEqual(calculate("LOG10E").value, (1/log(10), ""))
+        self.assertEqual(calculate("LN2").value, (log(2), ""))
+        self.assertEqual(calculate("LN10").value, (log(10), ""))
+        self.assertEqual(calculate("PI").value, (pi, ""))
+        self.assertEqual(calculate("PI_2").value, (pi/2, ""))
+        self.assertEqual(calculate("PI_4").value, (pi/4, ""))
+        self.assertEqual(calculate("1_PI").value, (1/pi, ""))
+        self.assertEqual(calculate("2_PI").value, (2/pi, ""))
+        self.assertEqual(calculate("2_SQRTPI").value, (2/sqrt(pi), ""))
+        self.assertEqual(calculate("SQRT2").value, (sqrt(2), ""))
+        self.assertEqual(calculate("SQRT1_2").value, (sqrt(0.5), ""))
+
     def test_calculator(self):
         self.assertEqual(calculate("72 - 7 - (1 - 2) * 3").value, (68.0, ""))
         self.assertEqual(calculate("-72 - 7 - (1 - 2) * 3").value, (-76.0, ""))
@@ -181,7 +213,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(calculate("sin(1+1)").value, (sin(2.0), ""))
         self.assertEqual(calculate("sin ( 2_SQRTPI * sqr ( 2 ) - 1 )").value, (-0.3634085731426532, ""))
         self.assertEqual(calculate("sqr(2 + 3)").value, (25.0, ""))
-        self.assertEqual(calculate("sin(-PI/4)").value, (-0.7071067811865476, ""))
+        self.assertEqual(calculate("sin(-PI_4)").value, (-0.7071067811865476, ""))
         self.assertEqual(calculate(" E ^ PI").value, (23.140692632779263, ""))
         self.assertEqual(calculate(" PI ^ E").value, (22.45915771836104, ""))
         self.assertEqual(calculate("sqr(sin(2)) + sqr(cos(1 + 1))").value, (1, ""))

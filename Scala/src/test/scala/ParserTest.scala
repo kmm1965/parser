@@ -200,6 +200,38 @@ class ParserTest extends AnyFunSuite {
     assert(chainr1(double, pow).parse("3 ^ 2 ^ 3 abc").map((x, s) => (rint(x), s)) === Some((6561.0, "abc")))
   }
 
+  private def test_funcs(): Unit = {
+    assert(calculate("sin(2.0)") === Some((sin(2.0), "")))
+    assert(calculate("cos(2.0)") === Some((cos(2.0), "")))
+    assert(calculate("asin(0.5)") === Some((asin(0.5), "")))
+    assert(calculate("acos(0.5)") === Some((acos(0.5), "")))
+    assert(calculate("sinh(2.0)") === Some((sinh(2.0), "")))
+    assert(calculate("cosh(2.0)") === Some((cosh(2.0), "")))
+    assert(calculate("tan(2.0)") === Some((tan(2.0), "")))
+    assert(calculate("log(2.0)") === Some((log(2.0), "")))
+    assert(calculate("log10(2.0)") === Some((log10(2.0), "")))
+    assert(calculate("exp(2.0)") === Some((exp(2.0), "")))
+    assert(calculate("sqrt(2.0)") === Some((sqrt(2.0), "")))
+    assert(calculate("sqr(2.0)") === Some((4.0, "")))
+  }
+
+  private def test_consts(): Unit = {
+    assert(calculate("E") === Some((Math.E, "")))
+    assert(calculate("LOG2E") === Some((1 / log(2.0), "")))
+    assert(calculate("LOG10E") === Some((0.4342944819032518, "")))
+    //assert(calculate("LOG10E") === Some((1 / log(10), "")))
+    assert(calculate("LN2") === Some((log(2.0), "")))
+    assert(calculate("LN10") === Some((log(10.0), "")))
+    assert(calculate("PI") === Some((Math.PI, "")))
+    assert(calculate("PI_2") === Some((Math.PI / 2, "")))
+    assert(calculate("PI_4") === Some((Math.PI / 4, "")))
+    assert(calculate("1_PI") === Some((1 / Math.PI, "")))
+    assert(calculate("2_PI") === Some((2 / Math.PI, "")))
+    assert(calculate("2_SQRTPI") === Some((2 / sqrt(Math.PI), "")))
+    assert(calculate("SQRT2") === Some((sqrt(2), "")))
+    assert(calculate("SQRT1_2") === Some((sqrt(0.5), "")))
+  }
+
   private def test_calculator(): Unit = {
     assert(calculate("72 - 7 - (1 - 2) * 3") === Some((68.0, "")))
     assert(calculate(" 7.21e-1 - 7.3 - (1.5 - 2.2) * (-3.3)") === Some((-8.889, "")))
@@ -233,6 +265,8 @@ class ParserTest extends AnyFunSuite {
     test_maybe()
     test_parser()
     test_some_parasers()
+    test_funcs()
+    test_consts()
     test_calculator()
   }
 }

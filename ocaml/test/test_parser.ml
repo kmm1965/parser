@@ -224,6 +224,39 @@ let test_some_parsers () =
     test_between ();
     test_chainlr1 ()
 
+let test_funcs () =
+    test_float_pair "calculate \"sin(2.0)\"" (calculate "sin(2.0)") (just (sin(2.0), ""));
+    test_float_pair "calculate \"cos(2.0)\"" (calculate "cos(2.0)") (just (cos(2.0), ""));
+    test_float_pair "calculate \"asin(0.5)\"" (calculate "asin(0.5)") (just (asin(0.5), ""));
+    test_float_pair "calculate \"acos(0.5)\"" (calculate "acos(0.5)") (just (acos(0.5), ""));
+    test_float_pair "calculate \"sinh(2.0)\"" (calculate "sinh(2.0)") (just (sinh(2.0), ""));
+    test_float_pair "calculate \"cosh(2.0)\"" (calculate "cosh(2.0)") (just (cosh(2.0), ""));
+    test_float_pair "calculate \"asinh(2.0)\"" (calculate "asinh(2.0)") (just (asinh(2.0), ""));
+    test_float_pair "calculate \"acosh(2.0)\"" (calculate "acosh(2.0)") (just (acosh(2.0), ""));
+    test_float_pair "calculate \"tan(2.0)\"" (calculate "tan(2.0)") (just (tan(2.0), ""));
+    test_float_pair "calculate \"log(2.0)\"" (calculate "log(2.0)") (just (log(2.0), ""));
+    test_float_pair "calculate \"log10(2.0)\"" (calculate "log10(2.0)") (just (log10(2.0), ""));
+    test_float_pair "calculate \"exp(2.0)\"" (calculate "exp(2.0)") (just (exp(2.0), ""));
+    test_float_pair "calculate \"sqrt(2.0)\"" (calculate "sqrt(2.0)") (just (sqrt(2.0), ""));
+    test_float_pair "calculate \"sqr(2.0)\"" (calculate "sqr(2.0)") (just (4.0, ""))
+
+let test_consts () =
+    let pi = 3.14159265358979323846 in
+    test_float_pair "calculate \"E\"" (calculate "E") (just (2.71828182845904523536, ""));
+    test_float_pair "calculate \"LOG2E\"" (calculate "LOG2E") (just (1.0 /. log(2.0), ""));
+    test_float_pair "calculate \"LOG10E\"" (calculate "LOG10E") (just (0.4342944819032518, ""));
+    test_float_pair "calculate \"LOG10E\"" (calculate "LOG10E") (just (1.0 /. log(10.0), ""));
+    test_float_pair "calculate \"LN2\"" (calculate "LN2") (just (log(2.0), ""));
+    test_float_pair "calculate \"LN10\"" (calculate "LN10") (just (log(10.0), ""));
+    test_float_pair "calculate \"PI\"" (calculate "PI") (just (pi, ""));
+    test_float_pair "calculate \"PI_2\"" (calculate "PI_2") (just (pi /. 2.0, ""));
+    test_float_pair "calculate \"PI_4\"" (calculate "PI_4") (just (pi /. 4.0, ""));
+    test_float_pair "calculate \"1_PI\"" (calculate "1_PI") (just (1.0 /. pi, ""));
+    test_float_pair "calculate \"2_PI\"" (calculate "2_PI") (just (2.0 /. pi, ""));
+    test_float_pair "calculate \"2_SQRTPI\"" (calculate "2_SQRTPI") (just (2.0 /. sqrt(pi), ""));
+    test_float_pair "calculate \"SQRT2\"" (calculate "SQRT2") (just (sqrt(2.0), ""));
+    test_float_pair "calculate \"SQRT1_2\"" (calculate "SQRT1_2") (just (sqrt(0.5), ""))
+
 let test_calculator () =
     test_float_pair "calculate \"72 - 7 - (1 - 2) * 3\"" (calculate "72 - 7 - (1 - 2) * 3") (just (68., ""));
     test_float_pair "calculate \" 7.21e-1 - 7.3 - (1.5 - 2.2) * (-3.3)\"" (calculate " 7.21e-1 - 7.3 - (1.5 - 2.2) * (-3.3)") (just (-8.889, ""));
@@ -239,4 +272,6 @@ let () =
     test_maybe ();
     test_parser ();
     test_some_parsers ();
+    test_funcs();
+    test_consts();
     test_calculator ()

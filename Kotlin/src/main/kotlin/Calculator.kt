@@ -9,7 +9,9 @@ import SomeParsers.Companion.usign
 import arrow.core.Option
 import kotlin.collections.listOf
 import kotlin.math.acos
+import kotlin.math.acosh
 import kotlin.math.asin
+import kotlin.math.asinh
 import kotlin.math.cos
 import kotlin.math.cosh
 import kotlin.math.exp
@@ -44,46 +46,36 @@ class Calculator {
     }
 
     val func = fold(listOf(
-        defObject("sin") { x: Double -> sin(x) },
-        defObject("cos") { x: Double -> cos(x) },
-        defObject("asin") { x: Double -> asin(x) },
-        defObject("acos") { x: Double -> acos(x) },
-        defObject("sinh") { x: Double -> sinh(x) },
-        defObject("cosh") { x: Double -> cosh(x) },
-        defObject("tan") { x: Double -> tan(x) },
-        defObject("log") { x: Double -> ln(x) },
+        defObject("sin")   { x: Double -> sin(x) },
+        defObject("cos")   { x: Double -> cos(x) },
+        defObject("asin")  { x: Double -> asin(x) },
+        defObject("acos")  { x: Double -> acos(x) },
+        defObject("sinh")  { x: Double -> sinh(x) },
+        defObject("cosh")  { x: Double -> cosh(x) },
+        defObject("asinh") { x: Double -> asinh(x) },
+        defObject("acosh") { x: Double -> acosh(x) },
+        defObject("tan")   { x: Double -> tan(x) },
+        defObject("log")   { x: Double -> ln(x) },
         defObject("log10") { x: Double -> log10(x) },
-        defObject("exp") { x: Double -> exp(x) },
-        defObject("sqrt") { x: Double -> sqrt(x) },
-        defObject("sqr") { x: Double -> x * x }
+        defObject("exp")   { x: Double -> exp(x) },
+        defObject("sqrt")  { x: Double -> sqrt(x) },
+        defObject("sqr")   { x: Double -> x * x }
     ))
 
-    val mLOG2E = 1.4426950408889634   // log2(e)
-    val mLOG10E = 0.4342944819032518  // log10(e)
-    val mLN2 = 0.6931471805599453     // ln(2)
-    val mLN10 = 2.302585092994046     // ln(10)
-    val mPI2 = 1.5707963267948966     // pi/2
-    val mPI4 = 0.7853981633974483     // pi/4
-    val m1PI = 0.3183098861837907     // 1/pi
-    val m2PI = 0.6366197723675814     // 2/pi
-    val m2SQRTPI = 1.1283791670955126 // 2/sqrt(pi)
-    val mSQRT2 = 1.4142135623730951   // sqrt(2)
-    val mSQRT12 = 0.7071067811865476  // 1/sqrt(2)
-
     val const = fold(listOf(
-        defObject("E", Math.E),
-        defObject("PI", Math.PI),
-        defObject("LOG2E", mLOG2E),
-        defObject("LOG10E", mLOG10E),
-        defObject("LN2", mLN2),
-        defObject("LN10", mLN10),
-        defObject("PI_2", mPI2),
-        defObject("PI_4", mPI4),
-        defObject("1_PI", m1PI),
-        defObject("2_PI", m2PI),
-        defObject("2_SQRTPI", m2SQRTPI),
-        defObject("SQRT2", mSQRT2),
-        defObject("SQRT1_2", mSQRT12)
+        defObject("E",        Math.E),
+        defObject("PI",       Math.PI),
+        defObject("LOG2E",    1.44269504088896340736),  // log2(e)
+        defObject("LOG10E",   0.434294481903251827651), // log10(e)
+        defObject("LN2",      0.693147180559945309417), // ln(2)
+        defObject("LN10",     2.30258509299404568402),  // ln(10)
+        defObject("PI_2",     1.57079632679489661923),  // pi/2
+        defObject("PI_4",     0.785398163397448309616), // pi/4
+        defObject("1_PI",     0.318309886183790671538), // 1/pi
+        defObject("2_PI",     0.636619772367581343076), // 2/pi
+        defObject("2_SQRTPI", 1.12837916709551257390),  // 2/sqrt(pi)
+        defObject("SQRT2",    1.41421356237309504880),  // sqrt(2)
+        defObject("SQRT1_2",  0.707106781186547524401)  // 1/sqrt(2)
     ))
 
     fun expr (): Parser<Double> {

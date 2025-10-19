@@ -7,7 +7,6 @@ import .Calculator: expr
 
 e = expr()
 
-println("Hello from Main!")
 println(my_parse(e, "72 - 7 - (1 - 2) * 3"))             # 68.0
 println(my_parse(e, "-7"))                               # 7.0
 println(my_parse(e, "-2^2"))                             # 4.0

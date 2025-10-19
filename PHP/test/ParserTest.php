@@ -10,8 +10,6 @@ include __DIR__ . "/../src/Maybe/Constructor/Nothing.php";
 
 use MonadParser\Parser\Parser;
 use MonadParser\Maybe\Maybe;
-use MonadParser\Maybe\Constructor\Just;
-use MonadParser\Maybe\Constructor\Nothing;
 
 class ParserTest extends \PHPUnit\Framework\TestCase
 {

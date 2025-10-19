@@ -41,19 +41,19 @@ Calculator.funcs = fold({
 })
 
 Calculator.consts = fold({
-defObject("E",          2.7182818284590452), -- e
-  defObject("PI",       math.pi),            -- 3.1415926535897932
-  defObject("LOG2E",    1.4426950408889634), -- log2(e)
-  defObject("LOG10E",   0.4342944819032518), -- log10(e)
-  defObject("LN2",      0.6931471805599453), -- ln(2)
-  defObject("LN10",     2.302585092994046),  -- ln(10)
-  defObject("PI_2",     1.5707963267948966), -- pi/2
-  defObject("PI_4",     0.7853981633974483), -- pi/4
-  defObject("1_PI",     0.3183098861837907), -- 1/pi
-  defObject("2_PI",     0.6366197723675814), -- 2/pi
-  defObject("2_SQRTPI", 1.1283791670955126), -- 2/sqrt(pi)
-  defObject("SQRT2",    1.4142135623730951), -- sqrt(2)
-  defObject("SQRT1_2",  0.7071067811865476)  -- 1/sqrt(2)
+  defObject("E",        2.7182818284590452),
+  defObject("PI",       math.pi),
+  defObject("LOG2E",    1.44269504088896340736),  -- log2(e)
+  defObject("LOG10E",   0.434294481903251827651), -- log10(e)
+  defObject("LN2",      0.693147180559945309417), -- ln(2)
+  defObject("LN10",     2.30258509299404568402),  -- ln(10)
+  defObject("PI_2",     1.57079632679489661923),  -- pi/2
+  defObject("PI_4",     0.785398163397448309616), -- pi/4
+  defObject("1_PI",     0.318309886183790671538), -- 1/pi
+  defObject("2_PI",     0.636619772367581343076), -- 2/pi
+  defObject("2_SQRTPI", 1.12837916709551257390),  -- 2/sqrt(pi)
+  defObject("SQRT2",    1.41421356237309504880),  -- sqrt(2)
+  defObject("SQRT1_2",  0.707106781186547524401)  -- 1/sqrt(2)
 })
 
 Calculator.expr = function ()

@@ -2,6 +2,44 @@ require "spec"
 require "../src/calculator"
 
 describe Calculator do
+  describe "funcs" do
+    it "test funcs" do
+      Calculator.calculate("sin(2.0)").should be Just.new({Math.sin(2.0), ""})
+      Calculator.calculate("cos(2.0)").should be Just.new({Math.cos(2.0), ""})
+      Calculator.calculate("asin(0.5)").should be Just.new({Math.asin(0.5), ""})
+      Calculator.calculate("acos(0.5)").should be Just.new({Math.acos(0.5), ""})
+      Calculator.calculate("sinh(2.0)").should be Just.new({Math.sinh(2.0), ""})
+      Calculator.calculate("cosh(2.0)").should be Just.new({Math.cosh(2.0), ""})
+      Calculator.calculate("asinh(2.0)").should be Just.new({Math.asinh(2.0), ""})
+      Calculator.calculate("acosh(2.0)").should be Just.new({Math.acosh(2.0), ""})
+      Calculator.calculate("tan(2.0)").should be Just.new({Math.tan(2.0), ""})
+      Calculator.calculate("log(2.0)").should be Just.new({Math.log(2.0), ""})
+      Calculator.calculate("log10(2.0)").should be Just.new({Math.log10(2.0), ""})
+      Calculator.calculate("exp(2.0)").should be Just.new({Math.exp(2.0), ""})
+      Calculator.calculate("sqrt(2.0)").should be Just.new({Math.sqrt(2.0), ""})
+      Calculator.calculate("sqr(2.0)").should be Just.new({4.0, ""})
+    end
+  end
+
+  describe "consts" do
+    it "test consts" do
+      Calculator.calculate("E").should be Just.new({Math::E, ""})
+      Calculator.calculate("LOG2E").should be Just.new({1 / Math.log(2.0), ""})
+      Calculator.calculate("LOG10E").should be Just.new({0.4342944819032518, ""})
+      #Calculator.calculate("LOG10E").should be Just.new({1 / Math.log(10.0), ""})
+      Calculator.calculate("LN2").should be Just.new({Math.log(2.0), ""})
+      Calculator.calculate("LN10").should be Just.new({Math.log(10.0), ""})
+      Calculator.calculate("PI").should be Just.new({Math::PI, ""})
+      Calculator.calculate("PI_2").should be Just.new({Math::PI / 2, ""})
+      Calculator.calculate("PI_4").should be Just.new({Math::PI / 4, ""})
+      Calculator.calculate("1_PI").should be Just.new({1 / Math::PI, ""})
+      Calculator.calculate("2_PI").should be Just.new({2 / Math::PI, ""})
+      Calculator.calculate("2_SQRTPI").should be Just.new({2 / Math.sqrt(Math::PI), ""})
+      Calculator.calculate("SQRT2").should be Just.new({Math.sqrt(2), ""})
+      Calculator.calculate("SQRT1_2").should be Just.new({Math.sqrt(0.5), ""})
+    end
+  end
+
   describe "calculate" do
     it "test calculate" do
       Calculator.calculate("72 - 7 - (1 - 2) * 3").should be Just.new({68.0, ""})

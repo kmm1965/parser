@@ -13,14 +13,14 @@ parse (P p) = p
 
 instance Functor Parser where
     -- fmap :: (a -> b) -> Parser a -> Parser b
-    fmap f p = p >>= pure . f
+    fmap f p = p >>= return . f
 
 instance Applicative Parser where
     -- pure :: a -> Parser a
     pure x = P $ \inp -> Just (x, inp)
 
     -- (<*>) :: Parser (a -> b) -> Parser a -> Parser b
-    pf <*> q = pf >>= flip fmap q
+    pf <*> q = pf >>= (<$> q)
 
 instance Monad Parser where
     -- (>>=) :: Parser a -> (a -> Parser b) -> Parser b
@@ -142,35 +142,21 @@ functions = [
 func :: Parser (Double -> Double)
 func = foldl1 (<|>) functions
 
-m_E        = 2.71828182845904523536   -- e
-m_LOG2E    = 1.44269504088896340736   -- log2(e)
-m_LOG10E   = 0.434294481903251827651  -- log10(e)
-m_LN2      = 0.693147180559945309417  -- ln(2)
-m_LN10     = 2.30258509299404568402   -- ln(10)
--- m_PI       = 3.14159265358979323846   -- pi
-m_PI_2     = 1.57079632679489661923   -- pi/2
-m_PI_4     = 0.785398163397448309616  -- pi/4
-m_1_PI     = 0.318309886183790671538  -- 1/pi
-m_2_PI     = 0.636619772367581343076  -- 2/pi
-m_2_SQRTPI = 1.12837916709551257390   -- 2/sqrt(pi)
-m_SQRT2    = 1.41421356237309504880   -- sqrt(2)
-m_SQRT1_2  = 0.707106781186547524401  -- 1/sqrt(2)
-
 constants :: [Parser Double]
 constants = [
-    defObject "E"        m_E,
-    defObject "LOG2E"    m_LOG2E,
-    defObject "LOG10E"   m_LOG10E,
-    defObject "LN2"      m_LN2,
-    defObject "LN10"     m_LN10,
+    defObject "E"        2.71828182845904523536,  -- e
     defObject "PI"       pi,
-    defObject "PI_2"     m_PI_2,
-    defObject "PI_4"     m_PI_4,
-    defObject "1_PI"     m_1_PI,
-    defObject "2_PI"     m_2_PI,
-    defObject "2_SQRTPI" m_2_SQRTPI,
-    defObject "SQRT2"    m_SQRT2,
-    defObject "SQRT1_2"  m_SQRT1_2
+    defObject "LOG2E"    1.44269504088896340736,  -- log2(e)
+    defObject "LOG10E"   0.434294481903251827651, -- log10(e)
+    defObject "LN2"      0.693147180559945309417, -- ln(2)
+    defObject "LN10"     2.30258509299404568402,  -- ln(10)
+    defObject "PI_2"     1.57079632679489661923,  -- pi/2
+    defObject "PI_4"     0.785398163397448309616, -- pi/4
+    defObject "1_PI"     0.318309886183790671538, -- 1/pi
+    defObject "2_PI"     0.636619772367581343076, -- 2/pi
+    defObject "2_SQRTPI" 1.12837916709551257390,  -- 2/sqrt(pi)
+    defObject "SQRT2"    1.41421356237309504880,  -- sqrt(2)
+    defObject "SQRT1_2"  0.707106781186547524401  -- 1/sqrt(2)
   ]
 
 _const :: Parser Double
@@ -211,7 +197,7 @@ main :: IO ()
 main = do
     --putStrLn "Input expression: "
     --inp <- getLine
-    let inp = "7 - 1 - 2"
+    let inp = "sin ( 2_SQRTPI * sqr ( 2 ) - 1 )" -- "7 - 1 - 2"
     case calculate inp of
         Nothing -> putStrLn "Wrong expression"
         Just a -> print a
