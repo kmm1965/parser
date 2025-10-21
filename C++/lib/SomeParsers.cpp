@@ -15,7 +15,9 @@ Parser<double> const double_ = ~Parser<double>([](std::string const& inp)
 });
 
 Parser<std::string> sign = optional_a(char_('+') | char_('-'));
-Parser<std::string> usign = optional_a(symbol('+') | symbol('-'));
+
+// Unary sign
+Parser<std::string> usign = ~sign;
 
 Parser<char> char_(char c){
     return satisfy(_([c](char x){ return x == c; }));

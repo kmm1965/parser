@@ -54,7 +54,8 @@ digits <- many(digit)
 
 sign <- optional_s(char('+') %>% parser_or_else(function(){ char('-') }))
 
-usign <- optional_s(symbol('+') %>% parser_or_else(function(){ symbol('-') }))
+# Unary sign
+usign <- token(sign)
 
 double <- token(digits %>%
   parser_and_then(function(int_part) { optional_s(char('.') %>% parser_skip(function() { digits })) %>%

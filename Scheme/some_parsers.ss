@@ -4,71 +4,41 @@
     (satisfy [\\ (c) (or (char-alphabetic? c) (char-numeric? c) (char=? c #\_))])
 )
 
-(define (char c)
-    (satisfy [\\ (x) (eq? x c)])
-)
+(define (char c) (satisfy [\\ (x) (eq? x c)]))
 
-(define (symbol c)
-    (token (char c))
-)
+(define (symbol c) (token (char c)))
 
 (define (name n)
-    (token (! (++ alnum) >>= [\\ (s)
+    (token (do!
+        (s <- (++ alnum))
         (if (string=? s n) (Parser_pure n) Parser_empty)
-    ]))
-)
-
-(define digits
-    (** (satisfy char-numeric?))
-)
-
-(define sign
-    (-- (! (char #\+) <||> (char #\-)))
-)
-
-(define double_
-    (token (! (++ (satisfy char-numeric?)) >>=
-        [\\ (s) (Parser_pure (string->number s))]
     ))
 )
 
+(define digit (satisfy char-numeric?))
+
+(define digits (** digit))
+
+(define sign (-- (! (char #\+) <||> (char #\-))))
+
+; Unary sign
+(define usign (token sign))
+
 (define double
-    (token (! sign >>=
-        [\\ (sign_part) (! digits >>=
-            [\\ (int_part) (!
-                (--- (! (char #\.) >> digits)) >>=
-                [\\ (frac_part) (!
-                    (--- (!
-                        (! (! (char #\e) <||> (char #\E)) >> sign) >>=
-                        [\\ (exp_sign) (!
-                            (++ (satisfy char-numeric?)) >>=
-                            [\\ (exp_digits)
-                                (Parser_pure (string-append exp_sign exp_digits))
-                            ]
-                        )]
-                    )) >>=
-                    [\\ (exp_part) (if
-                        (or
-                            (! (string-length int_part)  > 0)
-                            (! (string-length frac_part) > 0)
-                        )
-                        (Parser_pure (string->number
-                            (string-append
-                                sign_part int_part
-                                (if (! (string-length frac_part) > 0)
-                                    (string-append "." frac_part)
-                                    ""
-                                )
-                                (if (! (string-length exp_part) > 0)
-                                    (string-append "e" exp_part)
-                                    ""
-                                )
-                            )
-                        ))
-                        Parser_empty
-                    )]
-                )]
-            )]
-        )]
+    (token (do!
+        (int_part  <- digits)
+        (frac_part <- (--- (! (char #\.) >>> digits)))
+        (exp_part  <- (--- (do!
+            (exp_sign   <- (! (! (char #\e) <||> (char #\E)) >>> sign))
+            (exp_digits <- (++ digit))
+            (Parser_pure (string-append exp_sign exp_digits))
+        )))
+        (if (or (not (string-empty? int_part)) (not (string-empty? frac_part)))
+            (Parser_pure (string->number (string-append int_part
+                (if (not (string-empty? frac_part)) (string-append "." frac_part) "")
+                (if (not (string-empty? exp_part))  (string-append "e" exp_part) "")
+            )))
+            Parser_empty
+        )
     ))
 )

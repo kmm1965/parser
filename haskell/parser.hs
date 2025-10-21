@@ -64,14 +64,18 @@ optionalS p = p <|> pure ""
 optionalC :: Parser Char -> Parser String
 optionalC p = optionalS $ (: []) <$> p
 
+digit :: Parser Char
+digit = satisfy isDigit
+
 digits :: Parser String
-digits = many $ satisfy isDigit
+digits = many digit
 
 sign :: Parser String
 sign = optionalC $ char '+' <|> char '-'
 
+-- Unary sign
 usign :: Parser String
-usign = optionalC $ symbol '+' <|> symbol '-'
+usign = token sign
 
 double :: Parser Double
 double = token $ do
@@ -79,7 +83,7 @@ double = token $ do
     frac_part <- optionalS $ char '.' >> digits
     exp_part  <- optionalS $ do
         exp_sign   <- (char 'e' <|> char 'E') >> sign
-        exp_digits <- some $ satisfy isDigit
+        exp_digits <- some digit
         return $ exp_sign ++ exp_digits
     if not (null int_part) || not (null frac_part)
         then return $ read $ int_part ++

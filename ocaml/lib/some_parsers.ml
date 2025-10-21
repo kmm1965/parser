@@ -45,23 +45,23 @@ let optional_c p = optional_s ((fun c -> String.make 1 c) <$> p)
 
 let sign = optional_c (char '+' <||> char '-')
 
-let usign = optional_c (symbol '+' <||> symbol '-')
+(* Unary sign *)
+let usign = token(sign)
 
 let digit = satisfy is_digit
 
 let digits = many digit
 
-let double = token(sign >>=
-    (fun sign_part -> digits >>=
+let double = token(digits >>=
     (fun int_part  -> optional_s (char '.' >>> digits) >>=
     (fun frac_part -> optional_s (((char 'e' <||> char 'E') >>> sign) >>=
         (fun exp_sign -> some digit >>=
         (fun exp_digits -> pure (String.cat exp_sign exp_digits)))) >>=
     (fun exp_part  -> if String.length int_part > 0 || String.length frac_part > 0 then
-        pure (Float.of_string (sign_part ^ int_part ^
+        pure (Float.of_string (int_part ^
             (if String.length frac_part > 0 then "." ^ frac_part else "") ^
             (if String.length exp_part > 0 then "e" ^ exp_part else "")))
-        else empty)))))
+        else empty))))
 
 let rest p ff op x = (op >>= (fun f -> p >>= (fun y -> ff (f x y)))) <|> (fun () -> pure x)
 

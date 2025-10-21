@@ -36,19 +36,19 @@ object SomeParsers {
 
   val sign: Parser[String] = optional_c(char('+').orElse(char('-')))
 
-  val usign: Parser[String] = optional_c(symbol('+').orElse(symbol('-')))
+  // Unary sign
+  val usign: Parser[String] = token(sign)
 
-  val double: Parser[Double] = token(sign.flatMap(
-    sign_part => digits.flatMap(
+  val double: Parser[Double] = token(digits.flatMap(
     int_part => optional_s(char('.').skip(digits)).flatMap(
     frac_part => optional_s(char('e').orElse(char('E')).skip(sign).flatMap(
       exp_sign => some(digit).flatMap(
       exp_digits => Parser.pure(exp_sign + exp_digits)))).flatMap(
     exp_part => if int_part.nonEmpty || frac_part.nonEmpty then
-      Parser.pure((sign_part + int_part +
+      Parser.pure((int_part +
         (if frac_part.nonEmpty then "." + frac_part else "") +
         (if exp_part.nonEmpty then "e" + exp_part else "")).toDouble)
-      else empty)))))
+      else empty))))
 
   private def rest[A](p: => Parser[A], ff: A => Parser[A], op: Parser[(A, A) => A], a: A): Parser[A] =
     op.flatMap(f => p.flatMap(b => ff(f(a, b)))).orElse(pure(a))

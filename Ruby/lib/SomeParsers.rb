@@ -24,7 +24,8 @@ def digits = digit.many
 
 def sign = optional_s(char('+') | char('-'))
 
-def usign = optional_s(symbol('+') | symbol('-'))
+# Unary sign
+def usign = sign.token
 
 def double = digits.and_then {
         |int_part| (optional_s(char('.') >> digits)).and_then {

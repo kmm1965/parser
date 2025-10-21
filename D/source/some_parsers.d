@@ -40,8 +40,9 @@ Parser!string sign() pure {
     return -(char_('+') | char_('-'));
 }
 
+// Unary sign
 Parser!string usign() pure {
-    return -(symbol('+') | symbol('-'));
+    return ~sign();
 }
 
 @("sign unit test")
@@ -74,7 +75,7 @@ Parser!double double_() pure {
     import std.ascii: isDigit;
     import std.conv: to;
 
-    return ~digits.and_then!(
+    return ~(digits.and_then!(
         int_part  => (-(char_('.') >> digits)).and_then!(
         frac_part => (-(((char_('e') | char_('E')) >> sign).and_then!(
                exp_sign   => (+digit()).and_then!(
@@ -85,7 +86,7 @@ Parser!double double_() pure {
                 (frac_part.length > 0 ? '.' ~ frac_part : "") ~
                 (exp_part.length > 0 ? 'e' ~ exp_part : "")).to!double) :
             Parser!double.empty
-    )));
+    ))));
 }
 
 @("double_ unit test")

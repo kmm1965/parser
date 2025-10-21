@@ -68,7 +68,6 @@ let test_double = function(){
   verify("double.parse(\"1 abc\")", double_.parse("1 abc"), Maybe.Just([1, "abc"]));
   verify("double.parse(\"1. abc\")", double_.parse("1. abc"), Maybe.Just([1, "abc"]));
   verify("double.parse(\"1.23 abc\")", double_.parse("1.23 abc"), Maybe.Just([1.23, "abc"]));
-  verify("double.parse(\"-1.23 abc\")", double_.parse("-1.23 abc"), Maybe.Just([-1.23, "abc"]));
   verify("double.parse(\".23 abc\")", double_.parse(".23 abc"), Maybe.Just([0.23, "abc"]));
   verify("double.parse(\" + 1.23 abc\")", double_.parse(" + 1.23 abc"), Maybe.Nothing());
   verify("double.parse(\"1.23e10abc\")", double_.parse("1.23e10abc"), Maybe.Just([1.23e10, "abc"]));

@@ -55,7 +55,8 @@ let digits = many(digit)
 
 let sign = optional_c(char("+").orElse({ () in char("-") }))
 
-let usign = optional_c(symbol("+").orElse({ () in symbol("-") }))
+// Unary sign
+let usign = token(sign)
 
 let double: Parser<Double> = token(digits.flatMap({
 	(int_part) in optional_s(char(".").skip({ digits })).flatMap({

@@ -3,10 +3,10 @@
 (define (sqr x) (* x x))
 
 (define (def_object n x)
-    (! (name n) >> (Parser_pure x))
+    (! (name n) >> [\\ () (Parser_pure x)])
 )
 
-(define func (<||>
+(define funcs (<||>
     (def_object "sin"   sin)
     (def_object "cos"   cos)
     (def_object "asin"  asin)
@@ -24,7 +24,7 @@
 ))
 
 
-(define const (<||>
+(define consts (<||>
     (def_object "E"        2.71828182845904523536)
     (def_object "PI"       3.14159265358979323846)
     (def_object "LOG2E"    1.44269504088896340736)  ; log2(e)
@@ -41,7 +41,7 @@
 ))
 
 (define (op2 c f)
-    (! (symbol c) >> (Parser_pure f))
+    (! (symbol c) >> [\\ () (Parser_pure f)])
 )
 
 (define add (op2 #\+ +))
@@ -51,11 +51,14 @@
 (define pow (op2 #\^ [\\ (x y) (exp (* y (log x)))]))
 
 (define (expr)
-    (chainl1 (term) (! add <||> sub))
+    (do!
+        (sgn <- usign)
+        (chainl1 (term) (! add <||> sub) (string=? sgn "-"))
+    )
 )
 
 (define (term)
-    (chainl1 (factor) (! mul <||> div))
+    (chainl1 (factor) (! mul <||> div) #f)
 )
 
 (define (factor)
@@ -63,17 +66,14 @@
 )
 
 (define (expr_in_brackets)
-    (define br_open  (symbol #\( ))
-    (define br_close (symbol #\) ))
-    
-    (between br_open br_close expr)
+    (between (symbol #\( ) (symbol #\) ) expr)
 )
 
 (define (factor0)
     (<||>
         (expr_in_brackets)
-        (! func <*> expr_in_brackets)
-        const
+        (! funcs <*> expr_in_brackets)
+        consts
         double
     )
 )

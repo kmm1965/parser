@@ -14,17 +14,17 @@ let digits = digit.many();
 
 let sign = optional_s(char_('+').orElseGet(() => char_('-')));
 
-let usign = optional_s(symbol('+').orElseGet(() => symbol('-')));
+// Unary sign
+let usign = sign.token();
 
-let double_ = sign.flatMap(
-    (sign_part) => digits.flatMap(
+let double_ = digits.flatMap(
     (int_part) => optional_s(char_('.').skip(() => digits)).flatMap(
     (frac_part) => optional_s(char_('e').orElse(char_('E')).skip(() => sign).flatMap(
       (exp_sign) => digit.some().flatMap(
       (exp_digits) => Parser.pure(exp_sign + exp_digits)))).flatMap(
     (exp_part) => int_part.length > 0 || frac_part.length > 0 ?
-      Parser.pure(Number(sign_part + int_part +
+      Parser.pure(Number(int_part +
         (frac_part.length > 0 ? '.' + frac_part : "") +
         (exp_part.length > 0 ? 'e' + exp_part : ""))) :
-      Parser.empty())))
+      Parser.empty()))
   ).token();

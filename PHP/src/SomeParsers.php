@@ -49,31 +49,29 @@ final class SomeParsers
         }));
     }
 
+    // Unary sign
     public static function usign() : Parser {
-        return SomeParsers::optional_s(SomeParsers::symbol('+')->orElseGet(function (){
-            return SomeParsers::symbol('-');
-        }));
+        return SomeParsers::sign()->token();
     }
 
     public static function double_() : Parser
     {
-        return SomeParsers::sign()->flatMap(
-            function ($sign_part){ return SomeParsers::digits()->flatMap(
-            function ($int_part) use($sign_part){ return SomeParsers::optional_s(
+        return SomeParsers::digits()->flatMap(
+            function ($int_part){ return SomeParsers::optional_s(
                 SomeParsers::char_('.')->skip(function (){ return SomeParsers::digits(); }))->flatMap(
-            function ($frac_part) use($sign_part, $int_part){
+            function ($frac_part) use($int_part){
                 return SomeParsers::optional_s(SomeParsers::char_('e')->orElse(SomeParsers::char_('E'))->skip(
                         function (){ return SomeParsers::sign(); })->flatMap(
                     function ($exp_sign){
                         return SomeParsers::digit()->some()->flatMap(
                     function ($exp_digits) use($exp_sign){
                         return Parser::pure($exp_sign . $exp_digits); }); }) )->flatMap(
-            function ($exp_part) use($sign_part, $int_part, $frac_part){
+            function ($exp_part) use($int_part, $frac_part){
                 return strlen($int_part) > 0 || strlen($frac_part) > 0 ?
-                    Parser::pure(floatval($sign_part . $int_part .
+                    Parser::pure(floatval($int_part .
                         (strlen($frac_part) > 0 ? '.' . $frac_part : "") .
                         (strlen($exp_part) > 0 ? 'e' . $exp_part : ""))) :
                     Parser::empty();
-            }); }); }); })->token();
+            }); }); })->token();
     }
 }

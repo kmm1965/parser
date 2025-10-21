@@ -7,7 +7,7 @@
 
 ; Functor
 (define (<$> f p)
-    (! p >>= [\\ (x) (Parser_pure (f x))])
+    (do! (x <- p) (Parser_pure (f x)))
 )
 
 ; Monad
@@ -24,11 +24,15 @@
     )
 )
 
-(define (>> p0 . qs)
+(define (>> p0 . fqs)
     (fold-left
-        [\\ (p q) (! p >>= [\\ (_) q])]
-        p0 qs
+        [\\ (p fq) (! p >>= [\\ (_) (fq)])]
+        p0 fqs
     )
+)
+
+(define (>>> p q)
+    (! p >> [\\ () q])
 )
 
 ; Applicative
@@ -38,7 +42,7 @@
 
 (define (<*> pf0 . fqs)
     (fold-left
-        [\\ (pf fq) (! pf >>= [\\ (f) (! f <$> (fq))])]
+        [\\ (pf fq) (do! (f <- pf) (! f <$> (fq)))]
         pf0 fqs
     )
 )
@@ -80,11 +84,8 @@
 )
 
 (define (satisfy pred?)
-    (! anyChar >>= [\\ (c)
-        (if (pred? c)
-            (Parser_pure c)
-            Parser_empty
-        )]
+    (do! (c <- anyChar)
+        (if (pred? c) (Parser_pure c) Parser_empty)
     )
 )
 
@@ -115,9 +116,11 @@
 )
 
 (define (between open close fp)
-    (!
-        (! open >>= [\\ (_) (fp)])
-        >>= [\\ (x) (! close >> (Parser_pure x))]
+    (do!
+        open
+        (x <- (fp))
+        close
+        (Parser_pure x)
     )
 )
 
@@ -127,23 +130,19 @@
 
 (define (rest p ff op x)
     (Parser_or_else_get
-        (! op >>=
-            [\\ (f) (! p >>=
-                [\\ (y) (ff (f x y))]
-            )]
-        )
+        (do! (f <- op) (y <- p) (ff (f x y)))
         [\\ () (Parser_pure x)]
     )
 )
 
-(define (chainl1 p op)
+(define (chainl1 p op negate_first)
     (define (rest_l x) (rest p rest_l op x))
 
-    (! p >>= [\\ (x) (rest_l x)])
+    (do! (x <- p) (rest_l (if negate_first x (- x))))
 )
 
 (define (chainr1 p op)
-    (define scan (! p >>= [\\ (x) (rest_r x)]) )
+    (define scan (do! (x <- p) (rest_r x)))
     (define (rest_r x) (rest scan Parser_pure op x))
     
     scan

@@ -38,8 +38,9 @@ sub sign {
   ~(SomeParsers->char('+') | sub { SomeParsers->char('-') })
 }
 
+# Unary sign
 sub usign {
-  ~(SomeParsers->symbol('+') | sub { SomeParsers->symbol('-') })
+  sign->token
 }
 
 sub double {

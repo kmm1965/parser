@@ -61,7 +61,8 @@ class SomeParsers {
 
         val sign: Parser<String> = optional_c(char('+').orElse { char('-') })
 
-        val usign: Parser<String> = optional_c(symbol('+').orElse { symbol('-') })
+        // Unary sign
+        val usign: Parser<String> = token(sign)
 
         val double: Parser<Double> = token(sign.flatMap {
             sign_part -> digits.flatMap {

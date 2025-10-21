@@ -69,8 +69,9 @@ class SomeParsers
     optional_c(char('+').or_else{ char('-') })
   end
 
+  # Unary sign
   def self.usign : Parser(String)
-    optional_c(symbol('+').or_else{ symbol('-') })
+    token(sign)
   end
 
   def self.double : Parser(Float64)

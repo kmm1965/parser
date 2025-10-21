@@ -7,14 +7,18 @@
     (substring s 1 (string-length s))
 )
 
+(define (string-empty? s)
+    (zero? (string-length s))
+)
+
 (define-syntax !
-    ;(syntax-rules (<$> <*> >>= >> <||> >)
-    (syntax-rules (<$> <*> >>= >> <||> >)
+    (syntax-rules (<$> <*> >>= >> >>> <||>)
         ((_ a) a)
         ((_ a <$> b) (<$> a b))
         ((_ a <*> b) (<*> a b))
         ((_ a >>= b) (>>= a b))
         ((_ a >> b) (>> a b))
+        ((_ a >>> b) (>>> a b))
         ((_ a <||> b) (<||> a b))
         ((_ a > b) (> a b))
     )
@@ -48,4 +52,19 @@
     (syntax-rules ()
         ((_ p) (optional_s p))
     )
+)
+
+; do notation
+(define-syntax do!
+  (syntax-rules (<-)
+    [(_ expr) expr] ; End of recursion
+
+    [(_ (var <- expr) more ...) ; Base case with arrows
+      (! expr >>= [\\ (var) (do! more ...)])
+    ]
+
+    [(_ expr more ...) ; Case without arrows
+      (! expr >> [\\ () (do! more ...)])
+    ]
+  )
 )

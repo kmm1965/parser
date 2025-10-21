@@ -16,7 +16,9 @@
         public static Parser<string> digits => digit.Many();
 
         public static Parser<string> sign => Parser<char>.Optional(Char_('+') | Char_('-'));
-        public static Parser<string> usign => Parser<char>.Optional(Symbol('+') | Symbol('-'));
+ 
+        // Unary sign
+        public static Parser<string> usign => sign.Token();
 
         private static string NumberDecimalSeparator = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
 

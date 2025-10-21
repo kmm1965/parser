@@ -25,7 +25,8 @@ digits::Parser = many(digit)
 
 sign::Parser = optional_c(char('+') | char('-'))
 
-usign::Parser = optional_c(symbol('+') | symbol('-'))
+# Unary sign
+usign::Parser = ~sign
 
 double::Parser = ~and_then(digits,
     int_part  -> and_then(optional_s(char('.') >> digits),

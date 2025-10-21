@@ -44,19 +44,20 @@ struct
 
   val sign = optional_c(or_else(char(#"+"), fn () => char(#"-")));
 
-  val usign = optional_c(or_else(symbol(#"+"), fn () => symbol(#"-")));
-
-val double = token(flat_map(digits,
-  fn (int_part) => flat_map(optional_s(skip(char(#"."), fn () => digits)),
-  fn (frac_part) => flat_map(optional_s(flat_map(skip(or_else(char(#"e"), fn () => char(#"E")), fn () => sign),
-    fn (exp_sign) => flat_map(some(digit),
-    fn (exp_digits) => pure(exp_sign ^ exp_digits)))),
-  fn (exp_part) =>
-    if String.size int_part > 0 orelse String.size frac_part > 0
-    then pure(valOf(Real.fromString(int_part ^
-			(if String.size frac_part > 0 then "." ^ frac_part else "") ^
-			(if String.size exp_part > 0 then "e" ^ exp_part else ""))))
-		else empty))));
+  (* Unary sign *)
+  val usign = token(sign);
+  
+  val double = token(flat_map(digits,
+    fn (int_part) => flat_map(optional_s(skip(char(#"."), fn () => digits)),
+    fn (frac_part) => flat_map(optional_s(flat_map(skip(or_else(char(#"e"), fn () => char(#"E")), fn () => sign),
+      fn (exp_sign) => flat_map(some(digit),
+      fn (exp_digits) => pure(exp_sign ^ exp_digits)))),
+    fn (exp_part) =>
+      if String.size int_part > 0 orelse String.size frac_part > 0
+      then pure(valOf(Real.fromString(int_part ^
+              (if String.size frac_part > 0 then "." ^ frac_part else "") ^
+              (if String.size exp_part > 0 then "e" ^ exp_part else ""))))
+          else empty))));
 
   fun rest(fp: unit -> 'a Parser, ff: 'a -> 'a Parser, op_: ('a * 'a -> 'a) Parser, x: 'a): 'a Parser =
     or_else(flat_map(op_, fn (f) => flat_map(fp(), fn (y) => ff(f(x, y)))), fn () => pure(x));

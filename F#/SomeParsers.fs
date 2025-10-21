@@ -16,7 +16,9 @@ let digit: Parser<char> = Parser<char>.Satisfy Char.IsDigit
 let digits: Parser<string> = digit.Many()
 
 let sign: Parser<string> = Parser<char>.Optional_c(Char_('+').OrElse(Char_ '-'))
-let usign: Parser<string> = Parser<char>.Optional_c(Symbol('+').OrElse(Symbol '-'))
+
+// Unary sign
+let usign: Parser<string> = sign.Token()
 
 let NumberDecimalSeparator = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator
 

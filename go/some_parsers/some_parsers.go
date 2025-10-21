@@ -95,8 +95,9 @@ func Sign() parser.Parser[string] {
     return Optional_c(parser.OrElse(Char('+'), Char('-')))
 }
 
+// Unary sign
 func Usign() parser.Parser[string] {
-    return Optional_c(parser.OrElse(Symbol('+'), Symbol('-')))
+    return Token(Sign())
 }
 
 func Digit() parser.Parser[byte] {

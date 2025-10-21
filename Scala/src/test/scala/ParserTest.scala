@@ -170,7 +170,6 @@ class ParserTest extends AnyFunSuite {
     assert(double.parse("1 abc") === Some((1.0, "abc")))
     assert(double.parse("1. abc") === Some((1.0, "abc")))
     assert(double.parse("1.23 abc") === Some((1.23, "abc")))
-    assert(double.parse("-1.23 abc") === Some((-1.23, "abc")))
     assert(double.parse(".23 abc") === Some((0.23, "abc")))
     assert(double.parse(" + 1.23 abc") === None)
     assert(double.parse("1.23e10abc") === Some((1.23e10, "abc")))

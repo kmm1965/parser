@@ -20,7 +20,8 @@ digits = digit.many()
 
 sign = optional_s(char('+') | char('-'))
 
-usign = optional_s(symbol('+') | symbol('-'))
+# Unary sign
+usign = sign.token()
 
 double = digits.and_then(
     lambda int_part: optional_s(char('.') >> digits).and_then(

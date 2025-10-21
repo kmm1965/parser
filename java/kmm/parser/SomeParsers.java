@@ -29,20 +29,17 @@ public class SomeParsers {
 
     public final static Parser<String> sign = optional_c(char_('+').orElse(char_('-')));
 
-    public final static Parser<String> usign = optional_c(symbol('+').orElse(symbol('-')));
+    // Unary sign
+    public final static Parser<String> usign = sign.token();
 
-    public final static Parser<Double> double_ = sign.flatMap(
-        sign_part -> digits.flatMap(
+    public final static Parser<Double> double_ = digits.flatMap(
         int_part  -> optional_s(char_('.').skip(digits)).flatMap(
         frac_part -> optional_s(char_('e').orElse(char_('E')).skip(sign).flatMap(
             exp_sign -> digit.some().flatMap(
             exp_digits -> Parser.pure(exp_sign + exp_digits)))).flatMap(
         exp_part -> !int_part.isEmpty() || !frac_part.isEmpty() ?
-            Parser.pure(Double.valueOf(sign_part + int_part +
+            Parser.pure(Double.valueOf(int_part +
                 (!frac_part.isEmpty() ? '.' + frac_part : "") +
                 (!exp_part.isEmpty() ? 'e' + exp_part : ""))) :
-            Parser.empty())))).token();
-
-    public final static Parser<Double> _double_ = Parser.satisfy(Character::isDigit).some()
-        .flatMap(s -> Parser.pure(Double.valueOf(s))).token();
+            Parser.empty()))).token();
 }

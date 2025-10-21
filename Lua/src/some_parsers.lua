@@ -57,7 +57,8 @@ SomeParsers.digits = SomeParsers.digit:many()
 
 SomeParsers.sign = SomeParsers.optional_s(SomeParsers.char('+'):or_else(function () return SomeParsers.char('-') end))
 
-SomeParsers.usign = SomeParsers.optional_s(SomeParsers.symbol('+'):or_else(function () return SomeParsers.symbol('-') end))
+-- Unary sign
+SomeParsers.usign = SomeParsers.token(SomeParsers.sign)
 
 SomeParsers.double = SomeParsers.token(SomeParsers.digits:flat_map(function
   (int_part) return SomeParsers.optional_s(SomeParsers.char('.'):skip(function () return SomeParsers.digits end)):flat_map(function

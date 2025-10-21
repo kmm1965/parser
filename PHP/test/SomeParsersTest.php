@@ -138,8 +138,6 @@ class SomeParsersTest extends \PHPUnit\Framework\TestCase
             'double.parse("1. abc") is not equal to Just([1, "abc"])');
         $this->assertEquals($double->parse("1.23 abc"), Maybe::just([1.23, "abc"]),
             'double.parse("1.23 abc") is not equal to Just([1.23, "abc"])');
-        $this->assertEquals($double->parse("-1.23 abc"), Maybe::just([-1.23, "abc"]),
-            'double.parse("-1.23 abc") is not equal to Just([-1.23, "abc"])');
         $this->assertEquals($double->parse(".23 abc"), Maybe::just([0.23, "abc"]),
             'double.parse(".23 abc") is not equal to Just([0.23, "abc"])');
         $this->assertEquals($double->parse(" + 1.23 abc"), Maybe::nothing(),
