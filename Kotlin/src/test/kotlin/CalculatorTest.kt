@@ -38,7 +38,7 @@ class CalculatorTest {
     }
 
     @Test
-    fun `test constsgty` () {
+    fun `test constants` () {
         val calc = Calculator()
 
         assertEquals(Some(Pair(Math.E, "")), calc.calculate("E"))

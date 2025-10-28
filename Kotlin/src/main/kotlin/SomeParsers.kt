@@ -20,7 +20,7 @@ class SomeParsers {
         val empty_string: Parser<String> = Parser.pure("")
 
         fun <A, O, C> between(open: Parser<O>, close: Parser<C>, p: () -> Parser<A>): Parser<A>{
-            return open.flatMap { _ -> p().flatMap { x -> close.flatMap { _ -> Parser.pure(x) } } }
+            return open.skip { p().flatMap { x -> close.skip { Parser.pure(x) } } }
         }
 
         fun some(p: Parser<Char>): Parser<String>{
@@ -64,17 +64,16 @@ class SomeParsers {
         // Unary sign
         val usign: Parser<String> = token(sign)
 
-        val double: Parser<Double> = token(sign.flatMap {
-            sign_part -> digits.flatMap {
+        val double: Parser<Double> = token(digits.flatMap {
             int_part -> optional_s(char('.').skip { digits }).flatMap {
             frac_part -> optional_s(char('e').orElse { char('E') }.skip { sign }.flatMap {
                 exp_sign -> some(digit).flatMap {
                 exp_digits -> Parser.pure(exp_sign + exp_digits) } }).flatMap {
             exp_part -> if(int_part.isNotEmpty() || frac_part.isNotEmpty()){
-                Parser.pure((sign_part + int_part +
+                Parser.pure((int_part +
                     (if(frac_part.isNotEmpty()){ '.' + frac_part } else { "" }) +
                     (if(exp_part.isNotEmpty()){ 'e' + exp_part } else { "" })).toDouble())
-                } else { Parser.empty() } } } } })
+                } else { Parser.empty() } } } })
 
         fun <A> rest(p: () -> Parser<A>, ff: (A) -> Parser<A>, op: Parser<(A, A) -> A>, a: A): Parser<A>{
             return op.flatMap { f -> p().flatMap { b -> ff(f(a, b)) } }.orElse { Parser.pure(a) }

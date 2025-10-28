@@ -115,8 +115,7 @@ func iff[A any](cond bool, if_true A, if_false A) A {
 func Double() parser.Parser[float64] {
     digits := Digits()
     sign := Sign()
-    return Token(parser.FlatMap(sign,
-        func (sign_part string) parser.Parser[float64] { return parser.FlatMap(digits,
+    return Token(parser.FlatMap(digits,
         func (int_part string)  parser.Parser[float64] { return parser.FlatMap(Optional_s(parser.Skip(Char('.'), digits)),
         func (frac_part string) parser.Parser[float64] { return parser.FlatMap(Optional_s(parser.FlatMap(
                 parser.Skip(parser.OrElse(Char('e'), Char('E')), sign),
@@ -135,7 +134,7 @@ func Double() parser.Parser[float64] {
                     return parser.Empty[float64]()
                 } else { return parser.Pure(flt) }
             } else { return parser.Empty[float64]() }
-        }) }) }) }))
+        }) }) }))
 }
 
 func Rest[A any] (fval func () parser.Parser[A], ff func(A) parser.Parser[A], op parser.Parser[func(A, A) A], x A) parser.Parser[A] {

@@ -46,7 +46,7 @@ public class Calculator {
             def_object("cosh",  Math::cosh),
             def_object("tan",   Math::tan),
             def_object("log",   Math::log),
-            def_object("log10", Math:: log10),
+            def_object("log10", Math::log10),
             def_object("exp",   Math::exp),
             def_object("sqrt",  Math::sqrt),
             def_object("sqr",   Calculator::sqr)
