@@ -76,14 +76,14 @@ impl <'a> Calculator<'a> {
         name(n).skip(move || Parser::pure(value.clone()))
     }
 
-    fn expr_in_brackets(self) -> Parser<'a, f64> {
+    fn expr_in_brackets(&self) -> Parser<'a, f64> {
         between(symbol('('), symbol(')'), {
             let calc = self.clone();
             move || calc.clone().expr()
         })
     }
 
-    fn factor0(self) -> Parser<'a, f64> {
+    fn factor0(&self) -> Parser<'a, f64> {
         let calc = self.clone();
         let calc2 = self.clone();
         self.expr_in_brackets()
@@ -94,24 +94,24 @@ impl <'a> Calculator<'a> {
             .or_else(|| double())
     }
 
-    fn factor(self) -> Parser<'a, f64> {
+    fn factor(&self) -> Parser<'a, f64> {
         let calc = self.clone();
         chainr1(self.factor0(), calc.pow.clone())
     }
 
-    fn term(self) -> Parser<'a, f64> {
+    fn term(&self) -> Parser<'a, f64> {
         let calc = self.clone();
         chainl1(self.factor(), calc.clone().mul.or_else_p(calc.clone().div), false)
     }
 
-    fn expr(self) -> Parser<'a, f64> {
+    fn expr(&self) -> Parser<'a, f64> {
         usign().and_then({
             let calc = self.clone();
             move |sgn| chainl1(calc.clone().term(), calc.clone().add.or_else_p(calc.clone().sub), sgn == "-")
         })
     }
 
-    pub fn calc(self, inp: &str) -> Option<(f64, String)> {
+    pub fn calc(&self, inp: &str) -> Option<(f64, String)> {
         self.expr().parse(inp)
     }
 }
