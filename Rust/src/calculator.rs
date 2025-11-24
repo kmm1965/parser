@@ -104,7 +104,7 @@ impl <'a> Calculator<'a> {
         chainl1(self.factor(), calc.clone().mul.or_else_p(calc.clone().div), false)
     }
 
-    fn expr(&self) -> Parser<'a, f64> {
+    pub fn expr(&self) -> Parser<'a, f64> {
         usign().and_then({
             let calc = self.clone();
             move |sgn| chainl1(calc.clone().term(), calc.clone().add.or_else_p(calc.clone().sub), sgn == "-")

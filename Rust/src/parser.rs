@@ -43,10 +43,6 @@ impl <'a, A: 'a> Parser<'a, A> {
         self.and_then(move |_| fp())
     }
 
-    pub fn skip_p<B: 'a>(self, p: Parser<'a, B>) -> Parser<'a, B> {
-        self.skip(move || p.clone())
-    }
-
     pub fn apply<B: 'a, PF, FP>(pf: Parser<'a, Rc<PF>>, fp: FP) -> Parser<'a, B>
         where
             PF: Fn(A) -> B + 'a + ?Sized,
