@@ -1,5 +1,8 @@
 package kmm.parser;
 
+import kmm.utils.Pair;
+
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 import java.util.function.BinaryOperator;
 
@@ -74,7 +77,7 @@ public class Calculator {
 
     private static Parser<Double> factor0(){
         return expr_in_brackets()
-            .orElse(Parser.apply_u(funcs, Calculator::expr_in_brackets))
+            .orElseGet(() -> Parser.apply_u(funcs, Calculator::expr_in_brackets))
             .orElse(consts)
             .orElse(SomeParsers.double_);
     }
@@ -89,5 +92,9 @@ public class Calculator {
 
     public static Parser<Double> expr(){
         return usign.flatMap(sgn -> Parser.chainl1(term(), add.orElse(sub), sgn.equals("-")));
+    }
+
+    public static Optional<Pair<Double, String>> calculate(String inp) {
+        return expr().parse(inp);
     }
 }

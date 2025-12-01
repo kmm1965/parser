@@ -1,7 +1,7 @@
 package kmm.parser;
 
-import javafx.util.Pair;
 import kmm.utils.Alternative;
+import kmm.utils.Pair;
 
 import java.util.Optional;
 import java.util.function.*;
@@ -39,32 +39,38 @@ public class Parser<A> {
 
     // Monad
     public <B> Parser<B> flatMap(Function<? super A, Parser<B>> f){
-        return new Parser<>(inp -> parse(inp).flatMap(pair -> f.apply(pair.getKey()).parse(pair.getValue())));
-    }
-
-    public <B> Parser<B> skip(Parser<B> p){
-        return flatMap(a -> p);
+        return new Parser<>(inp -> parse(inp).flatMap(pair -> f.apply(pair.getFirst()).parse(pair.getSecond())));
     }
 
     public <B> Parser<B> skip(Supplier<Parser<B>> fp){
-        return flatMap(a -> fp.get());
+        return flatMap(_ -> fp.get());
+    }
+
+    public <B> Parser<B> skip_p(Parser<B> p){
+        return skip(() -> p);
     }
 
     // Alternative
     public static <A> Parser<A> empty(){
-        return new Parser<>(inp -> Optional.empty());
+        return new Parser<>(_ -> Optional.empty());
+    }
+
+    public Parser<A> orElseGet(Supplier<Parser<A>> fp){
+        return new Parser<>(inp -> Alternative.orElseGet(parse(inp), () -> fp.get().parse(inp)));
     }
 
     public Parser<A> orElse(Parser<A> p){
-        return new Parser<>(inp -> Alternative.orElseGet(parse(inp), () -> p.parse(inp)));
+        return orElseGet(() -> p);
     }
+
+    public static final Parser<String> emptyString = Parser.pure("");
 
     public Parser<String> some(){
         return apply(map(c -> s -> c + s), this::many);
     }
 
     public Parser<String> many(){
-        return some().orElse(pure(""));
+        return some().orElse(emptyString);
     }
 
     public final static Parser<Character> anyChar = new Parser<>(inp -> !inp.isEmpty() ?
@@ -78,11 +84,11 @@ public class Parser<A> {
     public final static Parser<String> spaces = satisfy(Character::isWhitespace).many();
 
     public static <Open, Close, A> Parser<A> between(Parser<Open> open, Parser<Close>close, Parser<A> p){
-        return open.skip(p).flatMap(x -> close.skip(pure(x)));
+        return open.skip_p(p).flatMap(x -> close.skip(() -> pure(x)));
     }
 
     public static <Open, Close, A> Parser<A> between(Parser<Open> open, Parser<Close>close, Supplier<Parser<A>> fp){
-        return open.skip(fp).flatMap(x -> close.skip(pure(x)));
+        return open.skip(fp).flatMap(x -> close.skip(() -> pure(x)));
     }
 
     public Parser<A> token(){
@@ -92,7 +98,7 @@ public class Parser<A> {
     private static <A> Parser<A> rest(Supplier<Parser<A>> fval, Function<A, Parser<A>> ff, Parser<BinaryOperator<A>> op, A a){
         return op
             .flatMap(f -> fval.get().flatMap(b -> ff.apply(f.apply(a, b))))
-            .orElse(pure(a));
+            .orElseGet(() -> pure(a));
     }
 
     private Parser<A> rest_l(Parser<BinaryOperator<A>> op, A a){
