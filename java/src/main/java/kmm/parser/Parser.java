@@ -1,6 +1,5 @@
 package kmm.parser;
 
-import kmm.utils.Alternative;
 import kmm.utils.Pair;
 
 import java.util.Optional;
@@ -19,7 +18,9 @@ public class Parser<A> {
 
     // Functor
     public <B> Parser<B> map(Function<? super A, B> f){
-        return flatMap(a -> pure(f.apply(a)));
+        return new Parser<>(inp -> parse(inp).map(
+            pair -> Pair.of(f.apply(pair.getFirst()), pair.getSecond())));
+        //return flatMap(a -> pure(f.apply(a)));
     }
 
     // Applicative
@@ -39,7 +40,8 @@ public class Parser<A> {
 
     // Monad
     public <B> Parser<B> flatMap(Function<? super A, Parser<B>> f){
-        return new Parser<>(inp -> parse(inp).flatMap(pair -> f.apply(pair.getFirst()).parse(pair.getSecond())));
+        return new Parser<>(inp -> parse(inp).flatMap(
+            pair -> f.apply(pair.getFirst()).parse(pair.getSecond())));
     }
 
     public <B> Parser<B> skip(Supplier<Parser<B>> fp){
@@ -55,12 +57,12 @@ public class Parser<A> {
         return new Parser<>(_ -> Optional.empty());
     }
 
-    public Parser<A> orElseGet(Supplier<Parser<A>> fp){
-        return new Parser<>(inp -> Alternative.orElseGet(parse(inp), () -> fp.get().parse(inp)));
+    public Parser<A> or(Supplier<Parser<A>> fp){
+        return new Parser<>(inp -> parse(inp).or(() -> fp.get().parse(inp)));
     }
 
     public Parser<A> orElse(Parser<A> p){
-        return orElseGet(() -> p);
+        return or(() -> p);
     }
 
     public static final Parser<String> emptyString = Parser.pure("");
@@ -98,7 +100,7 @@ public class Parser<A> {
     private static <A> Parser<A> rest(Supplier<Parser<A>> fval, Function<A, Parser<A>> ff, Parser<BinaryOperator<A>> op, A a){
         return op
             .flatMap(f -> fval.get().flatMap(b -> ff.apply(f.apply(a, b))))
-            .orElseGet(() -> pure(a));
+            .or(() -> pure(a));
     }
 
     private Parser<A> rest_l(Parser<BinaryOperator<A>> op, A a){

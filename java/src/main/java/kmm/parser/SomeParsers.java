@@ -34,7 +34,7 @@ public class SomeParsers {
 
     public final static Parser<Double> double_ = digits.flatMap(
         int_part  -> optional_s(char_('.').skip_p(digits)).flatMap(
-        frac_part -> optional_s(char_('e').orElseGet(() -> char_('E')).skip_p(sign).flatMap(
+        frac_part -> optional_s(char_('e').or(() -> char_('E')).skip_p(sign).flatMap(
             exp_sign -> digit.some().flatMap(
             exp_digits -> Parser.pure(exp_sign + exp_digits)))).flatMap(
         exp_part -> !int_part.isEmpty() || !frac_part.isEmpty() ?

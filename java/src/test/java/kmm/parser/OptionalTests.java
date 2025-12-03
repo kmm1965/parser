@@ -30,6 +30,12 @@ public class OptionalTests {
     }
 
     @Test
+    public void test_map() {
+        assertEquals(Optional.of(Math.log(2.0)), Optional.of(2.0).map(Math::log));
+        assertEquals(Optional.empty(), Optional.<Double>empty().map(Math::log));
+    }
+
+    @Test
     public void test_safe_sqrt_flatMap() {
         assertEquals(Optional.of(Math.sqrt(2.0)), Optional.of(2.0).flatMap(OptionalTests::safe_sqrt));
         assertEquals(Optional.of(0.0), Optional.of(0.0).flatMap(OptionalTests::safe_sqrt));
@@ -56,6 +62,15 @@ public class OptionalTests {
         assertEquals(Optional.of(Math.log(Math.sqrt(2.0))), safe_sqrt_safe_log(2.0));
         assertEquals(Optional.empty(), safe_sqrt_safe_log(0.0));
         assertEquals(Optional.empty(), safe_sqrt_safe_log(-2.0));
+    }
+
+    @Test
+    public void test_Or() {
+        assertEquals(Optional.of(2.0), Optional.of(2.0).or(() -> Optional.of(3.0)));
+        assertEquals(Optional.of(3.0), Optional.empty().or(() -> Optional.of(3.0)));
+
+        assertEquals(2.0, Optional.of(2.0).orElse(3.0));
+        assertEquals(3.0, Optional.empty().orElse(3.0));
     }
 
     static Optional<String> toString(int i) {
