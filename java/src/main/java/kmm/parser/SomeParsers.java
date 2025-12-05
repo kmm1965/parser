@@ -1,7 +1,8 @@
 package kmm.parser;
 
 public class SomeParsers {
-    public final static Parser<Character> alnum = Parser.satisfy(c -> Character.isLetterOrDigit(c) || c == '_');
+    public final static Parser<Character> alnum = Parser.satisfy(
+    c -> Character.isLetterOrDigit(c) || c == '_');
 
     public static Parser<Character> char_(char c){
         return Parser.satisfy(x -> x == c);
@@ -27,7 +28,7 @@ public class SomeParsers {
 
     public final static Parser<String> digits = digit.many();
 
-    public final static Parser<String> sign = optional_c(char_('+').orElse(char_('-')));
+    public final static Parser<String> sign = optional_c(char_('+').or(() -> char_('-')));
 
     // Unary sign
     public final static Parser<String> usign = sign.token();

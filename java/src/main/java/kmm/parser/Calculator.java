@@ -6,12 +6,13 @@ import java.util.Optional;
 import java.util.function.UnaryOperator;
 import java.util.function.BinaryOperator;
 
-import static kmm.parser.SomeParsers.usign;
+import static kmm.parser.Parser.*;
+import static kmm.parser.SomeParsers.*;
 
 public class Calculator {
 
     private static Parser<BinaryOperator<Double>> op2(char c, BinaryOperator<Double> f){
-        return  SomeParsers.symbol(c).skip(() -> Parser.pure(f));
+        return  symbol(c).skip(() -> Parser.pure(f));
     }
     private static final Parser<BinaryOperator<Double>> add = op2('+', Double::sum);
     private static final Parser<BinaryOperator<Double>> sub = op2('-', (x, y) -> x - y);
@@ -72,14 +73,14 @@ public class Calculator {
     ));
 
     private static Parser<Double> expr_in_brackets(){
-        return Parser.between(SomeParsers.symbol('('), SomeParsers.symbol(')'), Calculator::expr);
+        return between(symbol('('), symbol(')'), Calculator::expr);
     }
 
     private static Parser<Double> factor0(){
         return expr_in_brackets()
-            .or(() -> Parser.apply_u(funcs, Calculator::expr_in_brackets))
+            .or(() -> apply_u(funcs, Calculator::expr_in_brackets))
             .orElse(consts)
-            .orElse(SomeParsers.double_);
+            .orElse(double_);
     }
 
     private static Parser<Double> factor(){
@@ -87,11 +88,11 @@ public class Calculator {
     }
 
     private static Parser<Double> term(){
-        return Parser.chainl1(factor(), mul.orElse(div));
+        return chainl1(factor(), mul.orElse(div));
     }
 
     public static Parser<Double> expr(){
-        return usign.flatMap(sgn -> Parser.chainl1(term(), add.orElse(sub), sgn.equals("-")));
+        return usign.flatMap(sgn -> chainl1(term(), add.orElse(sub), sgn.equals("-")));
     }
 
     public static Optional<Pair<Double, String>> calculate(String inp) {
