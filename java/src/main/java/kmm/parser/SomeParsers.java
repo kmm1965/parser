@@ -12,8 +12,10 @@ public class SomeParsers {
         return char_(c).token();
     }
 
+    public static final Parser<String> identifier = alnum.some();
+
     public static Parser<String> name(String n){
-        return alnum.some().flatMap(s -> s.equals(n) ? Parser.pure(n) : Parser.empty()).token();
+        return identifier.flatMap(s -> s.equals(n) ? Parser.pure(n) : Parser.empty()).token();
     }
 
     public static Parser<String> optional_s(Parser<String> p){

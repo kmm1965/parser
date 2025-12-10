@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 public record Pair<T1, T2>(T1 first, T2 second) {
 
     public static <T1, T2> Pair<T1, T2> of(T1 value1, T2 value2) {
+        //return new Pair<>(requireNonNull(value1), requireNonNull(value2));
         return new Pair<>(requireNonNull(value1), requireNonNull(value2));
     }
 

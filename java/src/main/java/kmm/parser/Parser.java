@@ -20,7 +20,7 @@ public record Parser<A>(Function<String, Optional<Pair<A, String>>> p) {
 
     // Applicative
     public static <A> Parser<A> pure(A a) {
-        return new Parser<>(inp -> Optional.of(new Pair<>(a, inp)));
+        return new Parser<>(inp -> Optional.of(Pair.of(a, inp)));
     }
 
     public static <A, B> Parser<B> apply(Parser<Function<A, B>> pf, Supplier<Parser<A>> q) {
@@ -107,15 +107,17 @@ public record Parser<A>(Function<String, Optional<Pair<A, String>>> p) {
         return rest(() -> chainr1(op), Parser::pure, op, a);
     }
 
-    public static Parser<Double> chainl1(Parser<Double> self, Parser<BinaryOperator<Double>> op, boolean negate_first) {
-        return self.flatMap(a -> self.rest_l(op, negate_first ? -a : a));
+    public static Parser<Double> chainl1(Parser<Double> p, Parser<BinaryOperator<Double>> op, boolean negate_first) {
+        return p.flatMap(a -> p.rest_l(op, negate_first ? -a : a));
     }
 
-    public static Parser<Double> chainl1(Parser<Double> self, Parser<BinaryOperator<Double>> op) {
-        return chainl1(self, op, false);
+    public static Parser<Double> chainl1(Parser<Double> p, Parser<BinaryOperator<Double>> op) {
+        return chainl1(p, op, false);
     }
 
     public Parser<A> chainr1(Parser<BinaryOperator<A>> op) {
         return flatMap(a -> rest_r(op, a));
+
+
     }
 }

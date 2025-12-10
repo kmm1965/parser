@@ -5,6 +5,7 @@ import Control.Applicative
 import Numeric (readFloat)
 import Data.Bifunctor
 import Control.Monad
+import Data.Functor
 
 newtype Parser a = P (String -> Maybe (a, String))
 
@@ -14,6 +15,7 @@ parse (P p) = p
 instance Functor Parser where
     -- fmap :: (a -> b) -> Parser a -> Parser b
     fmap f p = p >>= return . f
+    -- fmap = flip (>>=) . (return .) -- pointfree version
 
 instance Applicative Parser where
     -- pure :: a -> Parser a
@@ -21,6 +23,7 @@ instance Applicative Parser where
 
     -- (<*>) :: Parser (a -> b) -> Parser a -> Parser b
     pf <*> q = pf >>= (<$> q)
+    -- (<*>) = (. flip (<$>)) . (>>=) -- pointfree version
 
 instance Monad Parser where
     -- (>>=) :: Parser a -> (a -> Parser b) -> Parser b
@@ -56,13 +59,13 @@ token :: Parser a -> Parser a
 token = between spaces spaces
 
 symbol :: Char -> Parser Char
-symbol c = token $ char c
+symbol = token . char
 
 optionalS :: Parser String -> Parser String
 optionalS p = p <|> pure ""
 
 optionalC :: Parser Char -> Parser String
-optionalC p = optionalS $ (: []) <$> p
+optionalC p = optionalS $ p <&> (: [])
 
 digit :: Parser Char
 digit = satisfy isDigit
@@ -115,93 +118,85 @@ chainr1 p op = scan
     scan   = do { x <- p; rest_r x }
     rest_r = rest scan return op
 
-name :: String -> Parser String
-name n = token $ do
-    s <- some $ satisfy $ \c -> isAlphaNum c || c == '_'
-    if s == n then return n else empty
+identifier :: Parser String
+identifier = (token . some . satisfy) (\c -> isAlphaNum c || c == '_')
 
 sqr :: (Num a) => a -> a
 sqr x = x * x
 
-defObject :: String -> a -> Parser a
-defObject n x = name n >> return x
+funcs :: Parser (Double -> Double)
+funcs = do
+    n <- identifier
+    foldl1 (<|>) [
+        guard (n == "sin")   $> sin,
+        guard (n == "cos")   $> cos,
+        guard (n == "asin")  $> asin,
+        guard (n == "acos")  $> acos,
+        guard (n == "sinh")  $> sinh,
+        guard (n == "cosh")  $> cosh,
+        guard (n == "asinh") $> asinh,
+        guard (n == "acosh") $> acosh,
+        guard (n == "tan")   $> tan,
+        guard (n == "log")   $> log,
+        guard (n == "exp")   $> exp,
+        guard (n == "sqrt")  $> sqrt,
+        guard (n == "sqr")   $> sqr]
 
-functions :: [Parser (Double -> Double)]
-functions = [
-    defObject "sin"   sin,
-    defObject "cos"   cos,
-    defObject "asin"  asin,
-    defObject "acos"  acos,
-    defObject "sinh"  sinh,
-    defObject "cosh"  cosh,
-    defObject "asinh" asinh,
-    defObject "acosh" acosh,
-    defObject "tan"   tan,
-    defObject "log"   log,
-    defObject "exp"   exp,
-    defObject "sqrt"  sqrt,
-    defObject "sqr"   sqr
-  ]
-
-func :: Parser (Double -> Double)
-func = foldl1 (<|>) functions
-
-constants :: [Parser Double]
-constants = [
-    defObject "E"        2.71828182845904523536,  -- e
-    defObject "PI"       pi,
-    defObject "LOG2E"    1.44269504088896340736,  -- log2(e)
-    defObject "LOG10E"   0.434294481903251827651, -- log10(e)
-    defObject "LN2"      0.693147180559945309417, -- ln(2)
-    defObject "LN10"     2.30258509299404568402,  -- ln(10)
-    defObject "PI_2"     1.57079632679489661923,  -- pi/2
-    defObject "PI_4"     0.785398163397448309616, -- pi/4
-    defObject "1_PI"     0.318309886183790671538, -- 1/pi
-    defObject "2_PI"     0.636619772367581343076, -- 2/pi
-    defObject "2_SQRTPI" 1.12837916709551257390,  -- 2/sqrt(pi)
-    defObject "SQRT2"    1.41421356237309504880,  -- sqrt(2)
-    defObject "SQRT1_2"  0.707106781186547524401  -- 1/sqrt(2)
-  ]
-
-_const :: Parser Double
-_const = foldl1 (<|>) constants
-
-op2 :: Char -> (Double -> Double -> Double) -> Parser (Double -> Double -> Double)
-op2 c f = symbol c >> return f
+consts :: Parser Double
+consts = do
+    n <- identifier
+    foldl1 (<|>) [
+        guard (n == "E")        $> 2.71828182845904523536,  -- e
+        guard (n == "PI")       $> pi,
+        guard (n == "LOG2E")    $> 1.44269504088896340736,  -- log2(e)
+        guard (n == "LOG10E")   $> 0.434294481903251827651, -- log10(e)
+        guard (n == "LN2")      $> 0.693147180559945309417, -- ln(2)
+        guard (n == "LN10")     $> 2.30258509299404568402,  -- ln(10)
+        guard (n == "PI_2")     $> 1.57079632679489661923,  -- pi/2
+        guard (n == "PI_4")     $> 0.785398163397448309616, -- pi/4
+        guard (n == "1_PI")     $> 0.318309886183790671538, -- 1/pi
+        guard (n == "2_PI")     $> 0.636619772367581343076, -- 2/pi
+        guard (n == "2_SQRTPI") $> 1.12837916709551257390,  -- 2/sqrt(pi)
+        guard (n == "SQRT2")    $> 1.41421356237309504880,  -- sqrt(2)
+        guard (n == "SQRT1_2")  $> 0.707106781186547524401] -- 1/sqrt(2)
 
 expr :: Parser Double
 expr = do
     sgn <- usign
     chainl1 term (add <|> sub) (sgn == "-")
   where
-    add = op2 '+' (+)
-    sub = op2 '-' (-)
+    add = symbol '+' $> (+)
+    sub = symbol '-' $> (-)
 
 term :: Parser Double
 term = chainl1 factor (mul <|> divide) False where
-    mul    = op2 '*' (*)
-    divide = op2 '/' (/)
+    mul    = symbol '*' $> (*)
+    divide = symbol '/' $> (/)
 
 factor0 :: Parser Double
 factor0 = expr_in_brackets
-    <|> func <*> expr_in_brackets
-    <|> _const
+    <|> funcs <*> expr_in_brackets
+    <|> consts
     <|> double
   where expr_in_brackets = between (symbol '(') (symbol ')') expr
 
 factor :: Parser Double
 factor = factor0 `chainr1` pow where
-    pow = op2 '^' fpow
-    fpow x y = exp $ y * log x
+    pow = symbol '^' $> (**)
 
 calculate :: String -> Maybe Double
-calculate s = (\(x, "") -> x) <$> parse expr s
+calculate s = parse expr s <&> (\(x, "") -> x)
 
 main :: IO ()
 main = do
     --putStrLn "Input expression: "
     --inp <- getLine
-    let inp = "sin ( 2_SQRTPI * sqr ( 2 ) - 1 )" -- "7 - 1 - 2"
+    --let inp = "sin ( 2_SQRTPI * sqr ( 2 ) - 1 )" -- "7 - 1 - 2"
+    --let inp = "7 - 1 - 2"
+    --let inp = "( 2_SQRTPI * sqr ( 2 ) - 1 )"
+    --let inp = "sqr(sin(2)) + sqr(cos(2))"
+    --let inp = "3^2^3"
+    let inp = "PI^E"
     case calculate inp of
         Nothing -> putStrLn "Wrong expression"
         Just a -> print a
