@@ -1,9 +1,6 @@
-import arrow.core.Option
-import arrow.core.Some
-import arrow.core.none
-import arrow.core.orElse
+import java.util.Optional
 
-class Parser<A>(val parse: (String) -> Option<Pair<A, String>>) {
+class Parser<A>(val parse: (String) -> Optional<Pair<A, String>>) {
     fun <B> map(f: (A) -> B) : Parser<B> {
         return flatMap { a -> pure(f(a)) }
     }
@@ -16,17 +13,17 @@ class Parser<A>(val parse: (String) -> Option<Pair<A, String>>) {
         return flatMap { _ -> fp() }
     }
 
-    fun orElse(f: () -> Parser<A>) : Parser<A> {
-        return Parser { inp -> this.parse(inp).orElse { f().parse(inp) } }
+    fun or(f: () -> Parser<A>) : Parser<A> {
+        return Parser { inp -> this.parse(inp).or { f().parse(inp) } }
     }
 
     companion object {
         fun <A> pure(a: A) : Parser<A> {
-            return Parser { inp -> Some(Pair(a, inp)) }
+            return Parser { inp -> Optional.of(Pair(a, inp)) }
         }
 
         fun <A> empty() : Parser<A> {
-            return Parser { _ -> none() }
+            return Parser { _ -> Optional.empty() }
         }
 
         fun <A, B> apply(pf: Parser<(A) -> B>, p: () -> Parser<A>): Parser<B> {

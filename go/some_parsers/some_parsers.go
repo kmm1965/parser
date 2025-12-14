@@ -83,8 +83,12 @@ func Alnum() parser.Parser[byte] {
     return Satisfy(func (c byte) bool { return unicode.IsLetter(rune(c)) || unicode.IsDigit(rune(c)) || c == '_' })
 }
 
+func Identifier() parser.Parser[string] {
+    return Token(Some(Alnum()))
+}
+
 func Name(n string) parser.Parser[string] {
-    return parser.FlatMap(Token(Some(Alnum())), func (s string) parser.Parser[string] {
+    return parser.FlatMap(Identifier(), func (s string) parser.Parser[string] {
         if s == n {
             return parser.Pure(n)
         } else { return parser.Empty[string]() }

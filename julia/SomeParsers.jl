@@ -15,7 +15,9 @@ char(x::Char)::Parser = satisfy(c::Char -> c == x)
 
 symbol(c::Char)::Parser = ~char(c)
 
-name(n::String)::Parser = ~and_then(+alnum, s -> s == n ? mreturn(Parser, n) : empty(Parser))
+identifier::Parser = ~(+alnum)
+
+name(n::String)::Parser = and_then(identifier, s -> s == n ? mreturn(Parser, n) : empty(Parser))
 
 double1::Parser = ~and_then(+satisfy(c -> isdigit(c)), s -> mreturn(Parser, parse(Float64, s)))
 

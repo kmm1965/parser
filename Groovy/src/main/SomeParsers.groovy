@@ -34,8 +34,10 @@ class SomeParsers {
 
     static Parser<Character> alnum = satisfy { char c -> c.isLetterOrDigit() || c == '_' as char }
 
+    static Parser<String> identifier = token(alnum.some())
+
     static Parser<String> name(String n) {
-        return token(alnum.some().flatMap { String s -> s == n ? Parser.pure(n) : Parser.empty() })
+        return identifier.flatMap { String s -> s == n ? Parser.pure(n) : Parser.empty() }
     }
 
     static Parser<String> optional_s(Parser<String> p) {

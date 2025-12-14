@@ -37,43 +37,43 @@ impl <'a> Calculator<'a> {
             div: symbol('/').skip(|| Parser::pure(Rc::new(|x, y| x / y) as Rc<dyn Fn(f64, f64) -> f64>)),
             pow: symbol('^').skip(|| Parser::pure(Rc::new(|x: f64, y: f64| x.powf(y)) as Rc<dyn Fn(f64, f64) -> f64>)),
 
-            funcs: [
-                Self::def_object("sin",   Rc::new(|x: f64| x.sin()) as Rc<dyn Fn(f64) -> f64>),
-                Self::def_object("cos",   Rc::new(|x: f64| x.cos()) as Rc<dyn Fn(f64) -> f64>),
-                Self::def_object("asin",  Rc::new(|x: f64| x.asin()) as Rc<dyn Fn(f64) -> f64>),
-                Self::def_object("acos",  Rc::new(|x: f64| x.acos()) as Rc<dyn Fn(f64) -> f64>),
-                Self::def_object("sinh",  Rc::new(|x: f64| x.sinh()) as Rc<dyn Fn(f64) -> f64>),
-                Self::def_object("cosh",  Rc::new(|x: f64| x.cosh()) as Rc<dyn Fn(f64) -> f64>),
-                Self::def_object("tan",   Rc::new(|x: f64| x.tan()) as Rc<dyn Fn(f64) -> f64>),
-                Self::def_object("log",   Rc::new(|x: f64| x.ln()) as Rc<dyn Fn(f64) -> f64>),
-                Self::def_object("log10", Rc::new(|x: f64| x.log10()) as Rc<dyn Fn(f64) -> f64>),
-                Self::def_object("exp",   Rc::new(|x: f64| x.exp()) as Rc<dyn Fn(f64) -> f64>),
-                Self::def_object("sqrt",  Rc::new(|x: f64| x.sqrt()) as Rc<dyn Fn(f64) -> f64>),
-                Self::def_object("sqr",   Rc::new(Self::sqr) as Rc<dyn Fn(f64) -> f64>),
-            ].iter().fold(Parser::empty(), |p0, p| p0.or_else_p(p.clone())),
+            funcs: identifier().and_then(move |n| [
+                Self::guard(n == "sin",   Rc::new(|x: f64| x.sin()) as Rc<dyn Fn(f64) -> f64>),
+                Self::guard(n == "cos",   Rc::new(|x: f64| x.cos()) as Rc<dyn Fn(f64) -> f64>),
+                Self::guard(n == "asin",  Rc::new(|x: f64| x.asin()) as Rc<dyn Fn(f64) -> f64>),
+                Self::guard(n == "acos",  Rc::new(|x: f64| x.acos()) as Rc<dyn Fn(f64) -> f64>),
+                Self::guard(n == "sinh",  Rc::new(|x: f64| x.sinh()) as Rc<dyn Fn(f64) -> f64>),
+                Self::guard(n == "cosh",  Rc::new(|x: f64| x.cosh()) as Rc<dyn Fn(f64) -> f64>),
+                Self::guard(n == "tan",   Rc::new(|x: f64| x.tan()) as Rc<dyn Fn(f64) -> f64>),
+                Self::guard(n == "log",   Rc::new(|x: f64| x.ln()) as Rc<dyn Fn(f64) -> f64>),
+                Self::guard(n == "log10", Rc::new(|x: f64| x.log10()) as Rc<dyn Fn(f64) -> f64>),
+                Self::guard(n == "exp",   Rc::new(|x: f64| x.exp()) as Rc<dyn Fn(f64) -> f64>),
+                Self::guard(n == "sqrt",  Rc::new(|x: f64| x.sqrt()) as Rc<dyn Fn(f64) -> f64>),
+                Self::guard(n == "sqr",   Rc::new(Self::sqr) as Rc<dyn Fn(f64) -> f64>),
+            ].iter().fold(Parser::empty(), |p0, p| p0.or_else_p(p.clone()))),
 
-            consts: [
-                Self::def_object("E",        std::f64::consts::E),
-                Self::def_object("PI",       std::f64::consts::PI),
-                Self::def_object("LOG2E",    1.44269504088896340736),  // log2(e)
-                Self::def_object("LOG10E",   0.434294481903251827651), // log10(e)
-                Self::def_object("LN2",      0.693147180559945309417), // ln(2)
-                Self::def_object("LN10",     2.30258509299404568402),  // ln(10)
-                Self::def_object("PI_2",     1.57079632679489661923),  // pi/2
-                Self::def_object("PI_4",     0.785398163397448309616), // pi/4
-                Self::def_object("1_PI",     0.318309886183790671538), // 1/pi
-                Self::def_object("2_PI",     0.636619772367581343076), // 2/pi
-                Self::def_object("2_SQRTPI", 1.12837916709551257390),  // 2/sqrt(pi)
-                Self::def_object("SQRT2",    1.41421356237309504880),  // sqrt(2)
-                Self::def_object("SQRT1_2",  0.707106781186547524401)  // 1/sqrt(2)
-            ].iter().fold(Parser::empty(), |p0, p| p0.or_else_p(p.clone())),
+            consts: identifier().and_then(move |n| [
+                Self::guard(n == "E",        std::f64::consts::E),
+                Self::guard(n == "PI",       std::f64::consts::PI),
+                Self::guard(n == "LOG2E",    1.44269504088896340736),  // log2(e)
+                Self::guard(n == "LOG10E",   0.434294481903251827651), // log10(e)
+                Self::guard(n == "LN2",      0.693147180559945309417), // ln(2)
+                Self::guard(n == "LN10",     2.30258509299404568402),  // ln(10)
+                Self::guard(n == "PI_2",     1.57079632679489661923),  // pi/2
+                Self::guard(n == "PI_4",     0.785398163397448309616), // pi/4
+                Self::guard(n == "1_PI",     0.318309886183790671538), // 1/pi
+                Self::guard(n == "2_PI",     0.636619772367581343076), // 2/pi
+                Self::guard(n == "2_SQRTPI", 1.12837916709551257390),  // 2/sqrt(pi)
+                Self::guard(n == "SQRT2",    1.41421356237309504880),  // sqrt(2)
+                Self::guard(n == "SQRT1_2",  0.707106781186547524401)  // 1/sqrt(2)
+            ].iter().fold(Parser::empty(), |p0, p| p0.or_else_p(p.clone()))),
         }
     }
 
     fn sqr(x: f64) -> f64 { return x * x; }
 
-    fn def_object<A: Clone + 'a>(n: &'a str, value: A) -> Parser<'a, A> {
-        name(n).skip(move || Parser::pure(value.clone()))
+    fn guard<A: Clone + 'a>(b: bool, value: A) -> Parser<'a, A> {
+        if b { Parser::pure(value.clone()) } else { Parser::empty() }
     }
 
     fn expr_in_brackets(&self) -> Parser<'a, f64> {

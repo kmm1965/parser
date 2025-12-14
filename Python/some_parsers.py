@@ -2,8 +2,10 @@ from parser import Parser, satisfy
 
 alnum = satisfy(lambda c: c.isalnum() or c == '_')
 
+identifier = alnum.some().token()
+
 def name(n: str) -> Parser[str]:
-    return alnum.some().and_then(lambda s: Parser.pure(n) if s == n else Parser.empty()).token()
+    return identifier.and_then(lambda s: Parser.pure(n) if s == n else Parser.empty())
 
 def char(c: str):
    return satisfy(lambda x: x == c)

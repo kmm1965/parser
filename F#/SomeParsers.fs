@@ -5,7 +5,7 @@ open Parser
 
 let alnum: Parser<char> = Parser<char>.Satisfy(fun c -> Char.IsLetterOrDigit(c) || c.Equals '_')
 
-let Name (n: string): Parser<string> = alnum.Some().FlatMap(fun s -> if s.Equals(n) then Parser.Pure(n) else Parser<string>.Empty()).Token()
+let identifier: Parser<string> = alnum.Some().Token()
 
 let Char_(c: char): Parser<char> = Parser<char>.Satisfy(_.Equals(c))
 

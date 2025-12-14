@@ -25,8 +25,12 @@ unittest {
     assert(symbol('+').parse("abc") == Nothing!(Tuple!(char, string)));
 }
 
+Parser!string identifier() pure {
+    return ~(+alnum);
+}
+
 Parser!string name(string n) pure {
-    return ~(+alnum).and_then!(s => s == n ? Parser_pure(n) : Parser!string.empty);
+    return identifier.and_then!(s => s == n ? Parser_pure(n) : Parser!string.empty);
 }
 
 @("name unit test")

@@ -32,7 +32,9 @@ struct
 
   val alnum = satisfy(fn (c) => Char.isAlphaNum c orelse c = #"_");
 
-  fun name(n: string) = token(flat_map(some(alnum), fn (n2) => if n2 = n then pure(n) else empty));
+  val identifier = token(some(alnum));
+
+  fun name(n: string) = flat_map(identifier, fn (n2) => if n2 = n then pure(n) else empty);
 
   fun optional_s(p: string Parser): string Parser = or_else(p, fn () => empty_string);
 

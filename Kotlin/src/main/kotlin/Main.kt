@@ -1,7 +1,6 @@
 package org.example
 
 import Calculator
-import arrow.core.Some
 import kotlin.math.round
 
 fun main() {

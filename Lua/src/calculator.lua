@@ -21,40 +21,40 @@ function fold(parsers)
   return SomeParsers.token(p0)
 end
 
-function defObject(n, value)
-  return SomeParsers.name(n):skip(function () return Parser.pure(value) end)
+function guard(b, value)
+  return b and Parser.pure(value) or Parser.empty
 end
 
-Calculator.funcs = fold({
-  defObject("sin",   function (x) return math.sin(x) end),
-  defObject("cos",   function (x) return math.cos(x) end),
-  defObject("asin",  function (x) return math.asin(x) end),
-  defObject("acos",  function (x) return math.acos(x) end),
-  defObject("sinh",  function (x) return math.sinh(x) end),
-  defObject("cosh",  function (x) return math.cosh(x) end),
-  defObject("tan",   function (x) return math.tan(x) end),
-  defObject("log",   function (x) return math.log(x) end),
-  defObject("log10", function (x) return math.log10(x) end),
-  defObject("exp",   function (x) return math.exp(x) end),
-  defObject("sqrt",  function (x) return math.sqrt(x) end),
-  defObject("sqr",   function (x) return x * x end)
-})
+Calculator.funcs = SomeParsers.identifier:flat_map(function (n) return fold({
+  guard(n == "sin",   function (x) return math.sin(x) end),
+  guard(n == "cos",   function (x) return math.cos(x) end),
+  guard(n == "asin",  function (x) return math.asin(x) end),
+  guard(n == "acos",  function (x) return math.acos(x) end),
+  guard(n == "sinh",  function (x) return math.sinh(x) end),
+  guard(n == "cosh",  function (x) return math.cosh(x) end),
+  guard(n == "tan",   function (x) return math.tan(x) end),
+  guard(n == "log",   function (x) return math.log(x) end),
+  guard(n == "log10", function (x) return math.log10(x) end),
+  guard(n == "exp",   function (x) return math.exp(x) end),
+  guard(n == "sqrt",  function (x) return math.sqrt(x) end),
+  guard(n == "sqr",   function (x) return x * x end)
+}) end)
 
-Calculator.consts = fold({
-  defObject("E",        2.7182818284590452),
-  defObject("PI",       math.pi),
-  defObject("LOG2E",    1.44269504088896340736),  -- log2(e)
-  defObject("LOG10E",   0.434294481903251827651), -- log10(e)
-  defObject("LN2",      0.693147180559945309417), -- ln(2)
-  defObject("LN10",     2.30258509299404568402),  -- ln(10)
-  defObject("PI_2",     1.57079632679489661923),  -- pi/2
-  defObject("PI_4",     0.785398163397448309616), -- pi/4
-  defObject("1_PI",     0.318309886183790671538), -- 1/pi
-  defObject("2_PI",     0.636619772367581343076), -- 2/pi
-  defObject("2_SQRTPI", 1.12837916709551257390),  -- 2/sqrt(pi)
-  defObject("SQRT2",    1.41421356237309504880),  -- sqrt(2)
-  defObject("SQRT1_2",  0.707106781186547524401)  -- 1/sqrt(2)
-})
+Calculator.consts = SomeParsers.identifier:flat_map(function (n) return fold({
+  guard(n == "E",        2.7182818284590452),
+  guard(n == "PI",       math.pi),
+  guard(n == "LOG2E",    1.44269504088896340736),  -- log2(e)
+  guard(n == "LOG10E",   0.434294481903251827651), -- log10(e)
+  guard(n == "LN2",      0.693147180559945309417), -- ln(2)
+  guard(n == "LN10",     2.30258509299404568402),  -- ln(10)
+  guard(n == "PI_2",     1.57079632679489661923),  -- pi/2
+  guard(n == "PI_4",     0.785398163397448309616), -- pi/4
+  guard(n == "1_PI",     0.318309886183790671538), -- 1/pi
+  guard(n == "2_PI",     0.636619772367581343076), -- 2/pi
+  guard(n == "2_SQRTPI", 1.12837916709551257390),  -- 2/sqrt(pi)
+  guard(n == "SQRT2",    1.41421356237309504880),  -- sqrt(2)
+  guard(n == "SQRT1_2",  0.707106781186547524401)  -- 1/sqrt(2)
+}) end)
 
 Calculator.expr = function ()
   return SomeParsers.usign:flat_map(function (sgn)

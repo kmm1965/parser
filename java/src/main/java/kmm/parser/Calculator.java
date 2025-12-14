@@ -26,23 +26,23 @@ public class Calculator {
         return b ? Parser.pure(value) : Parser.empty();
     }
 
-    private static Parser<UnaryOperator<Double>> guardOp(boolean b, UnaryOperator<Double> op){
+    private static Parser<UnaryOperator<Double>> guardFn(boolean b, UnaryOperator<Double> op){
         return guard(b, op);
     }
 
     private static final Parser<UnaryOperator<Double>> functions = identifier.flatMap(n -> Stream.of(
-            guardOp(n.equals("sin"),   Math::sin),
-            guardOp(n.equals("cos"),   Math::cos),
-            guardOp(n.equals("asin"),  Math::asin),
-            guardOp(n.equals("acos"),  Math::acos),
-            guardOp(n.equals("sinh"),  Math::sinh),
-            guardOp(n.equals("cosh"),  Math::cosh),
-            guardOp(n.equals("tan"),   Math::tan),
-            guardOp(n.equals("log"),   Math::log),
-            guardOp(n.equals("log10"), Math::log10),
-            guardOp(n.equals("exp"),   Math::exp),
-            guardOp(n.equals("sqrt"),  Math::sqrt),
-            guardOp(n.equals("sqr"),   x -> x * x)
+            guardFn(n.equals("sin"),   Math::sin),
+            guardFn(n.equals("cos"),   Math::cos),
+            guardFn(n.equals("asin"),  Math::asin),
+            guardFn(n.equals("acos"),  Math::acos),
+            guardFn(n.equals("sinh"),  Math::sinh),
+            guardFn(n.equals("cosh"),  Math::cosh),
+            guardFn(n.equals("tan"),   Math::tan),
+            guardFn(n.equals("log"),   Math::log),
+            guardFn(n.equals("log10"), Math::log10),
+            guardFn(n.equals("exp"),   Math::exp),
+            guardFn(n.equals("sqrt"),  Math::sqrt),
+            guardFn(n.equals("sqr"),   x -> x * x)
         ).reduce(Parser.empty(), Parser::orElse));
     
     private static final Parser<Double> constants = identifier.flatMap(n -> Stream.of(

@@ -39,10 +39,12 @@ SomeParsers.alnum = SomeParsers.satisfy(function (c)
   return string.match(c, "%w") or c == '_'
 end)
 
+SomeParsers.identifier = SomeParsers.token(SomeParsers.alnum:some())
+
 SomeParsers.name = function (n)
-  return SomeParsers.token(SomeParsers.alnum:some():flat_map(function (n2)
+  return SomeParsers.identifier:flat_map(function (n2)
     return n2 == n and Parser.pure(n) or Parser.empty
-  end))
+  end)
 end
 
 SomeParsers.optional_s = function (p)

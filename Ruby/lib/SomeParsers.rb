@@ -10,8 +10,10 @@ def symbol(c)
     char(c).token
 end
 
+def identifier = alnum.some.token
+
 def name_(n)
-    alnum.some.and_then { |s| s == n ? Parser.pure(n) : Parser.empty }.token
+    identifier.and_then { |s| s == n ? Parser.pure(n) : Parser.empty }
 end
 
 def optional_s(p)

@@ -27,10 +27,14 @@ final class SomeParsers
         });
     }
 
+    public static function identifier() : Parser {
+        return SomeParsers::alnum()->some()->token();
+    }
+
     public static function name(string $n) : Parser {
-        return SomeParsers::alnum()->some()->flatMap(function(string $s) use($n){
+        return SomeParsers::identifier()->flatMap(function(string $s) use($n){
             return $s == $n ? Parser::pure($n) : Parser::empty();
-        })->token();
+        });
     }
 
     public static function digit() : Parser {

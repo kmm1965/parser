@@ -24,13 +24,15 @@ object SomeParsers {
 
   val alnum: Parser[Char] = satisfy(c => Character.isLetterOrDigit(c) || c == '_')
 
-  def name(n: String): Parser[String] = token(some(alnum).flatMap(s => if s.equals(n) then pure(n) else empty))
+  def identifier: Parser[String] = token(some(alnum))
+
+  def name(n: String): Parser[String] = identifier.flatMap(s => if s.equals(n) then pure(n) else empty)
 
   private def optional_s(p: Parser[String]): Parser[String] = p.orElse(empty_string)
 
   def optional_c(p: Parser[Char]): Parser[String] = optional_s(p.map(_.toString))
 
-  val digit: Parser[Char] = satisfy(Character.isDigit)
+  private val digit: Parser[Char] = satisfy(Character.isDigit)
 
   val digits: Parser[String] = many(digit)
 

@@ -6,7 +6,9 @@ let optional_s = (p) => p.orElse(empty_string)
 
 let alnum = satisfy((c) => /[a-zA-Z0-9_]/.test(c));
 
-let name = (n) => (alnum.some().flatMap((s) => s === n ? Parser.pure(n) : Parser.empty())).token();
+let identifier = alnum.some().token();
+
+let name = (n) => identifier.flatMap((s) => s === n ? Parser.pure(n) : Parser.empty());
 
 let digit = satisfy(isDigit);
 

@@ -19,42 +19,42 @@ struct Calculator {
         return token(p0)
     }
 
-    static func defObject<A>(_ n: String, _ value: A) -> Parser<A>{
-        return name(n).skip({ [value] in Parser.pure(value) })
+    static func guard_<A>(_ b: Bool, _ value: A) -> Parser<A>{
+        return b ? Parser.pure(value) : Parser<A>.empty()
     }
 
-    let funcs = fold([
-        defObject("sin",   { (x: Double) in sin(x) }),
-        defObject("cos",   { (x: Double) in cos(x) }),
-        defObject("asin",  { (x: Double) in asin(x) }),
-        defObject("acos",  { (x: Double) in acos(x) }),
-        defObject("sinh",  { (x: Double) in sinh(x) }),
-        defObject("cosh",  { (x: Double) in cosh(x) }),
-        defObject("asinh", { (x: Double) in asinh(x) }),
-        defObject("acosh", { (x: Double) in acosh(x) }),
-        defObject("tan",   { (x: Double) in tan(x) }),
-        defObject("log",   { (x: Double) in log(x) }),
-        defObject("log10", { (x: Double) in log10(x) }),
-        defObject("exp",   { (x: Double) in exp(x) }),
-        defObject("sqrt",  { (x: Double) in sqrt(x) }),
-        defObject("sqr",   { (x: Double) in x * x })
-    ])
+    let funcs = identifier.flatMap({ (n) in fold([
+        guard_(n == "sin",   { (x: Double) in sin(x) }),
+        guard_(n == "cos",   { (x: Double) in cos(x) }),
+        guard_(n == "asin",  { (x: Double) in asin(x) }),
+        guard_(n == "acos",  { (x: Double) in acos(x) }),
+        guard_(n == "sinh",  { (x: Double) in sinh(x) }),
+        guard_(n == "cosh",  { (x: Double) in cosh(x) }),
+        guard_(n == "asinh", { (x: Double) in asinh(x) }),
+        guard_(n == "acosh", { (x: Double) in acosh(x) }),
+        guard_(n == "tan",   { (x: Double) in tan(x) }),
+        guard_(n == "log",   { (x: Double) in log(x) }),
+        guard_(n == "log10", { (x: Double) in log10(x) }),
+        guard_(n == "exp",   { (x: Double) in exp(x) }),
+        guard_(n == "sqrt",  { (x: Double) in sqrt(x) }),
+        guard_(n == "sqr",   { (x: Double) in x * x })
+    ]) })
     
-    let consts = fold([
-        defObject("E",        2.718281828459045235360),
-        defObject("PI",       3.141592653589793238462),
-        defObject("LOG2E",    1.44269504088896340736),  // log2(e)
-        defObject("LOG10E",   0.434294481903251827651), // log10(e)
-        defObject("LN2",      0.693147180559945309417), // ln(2)
-        defObject("LN10",     2.30258509299404568402),  // ln(10)
-        defObject("PI_2",     1.57079632679489661923),  // pi/2
-        defObject("PI_4",     0.785398163397448309616), // pi/4
-        defObject("1_PI",     0.318309886183790671538), // 1/pi
-        defObject("2_PI",     0.636619772367581343076), // 2/pi
-        defObject("2_SQRTPI", 1.12837916709551257390),  // 2/sqrt(pi)
-        defObject("SQRT2",    1.41421356237309504880),  // sqrt(2)
-        defObject("SQRT1_2",  0.707106781186547524401)  // 1/sqrt(2)
-      ])
+    let consts = identifier.flatMap({ (n) in fold([
+        guard_(n == "E",        2.718281828459045235360),
+        guard_(n == "PI",       3.141592653589793238462),
+        guard_(n == "LOG2E",    1.44269504088896340736),  // log2(e)
+        guard_(n == "LOG10E",   0.434294481903251827651), // log10(e)
+        guard_(n == "LN2",      0.693147180559945309417), // ln(2)
+        guard_(n == "LN10",     2.30258509299404568402),  // ln(10)
+        guard_(n == "PI_2",     1.57079632679489661923),  // pi/2
+        guard_(n == "PI_4",     0.785398163397448309616), // pi/4
+        guard_(n == "1_PI",     0.318309886183790671538), // 1/pi
+        guard_(n == "2_PI",     0.636619772367581343076), // 2/pi
+        guard_(n == "2_SQRTPI", 1.12837916709551257390),  // 2/sqrt(pi)
+        guard_(n == "SQRT2",    1.41421356237309504880),  // sqrt(2)
+        guard_(n == "SQRT1_2",  0.707106781186547524401)  // 1/sqrt(2)
+      ]) })
     
     func expr() -> Parser<Double>{
         return usign.flatMap({ (sgn) in chainl1(self.term(), self.add.orElse({ () in self.sub }), sgn == "-") })

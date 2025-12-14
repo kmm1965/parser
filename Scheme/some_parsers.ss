@@ -8,11 +8,15 @@
 
 (define (symbol c) (token (char c)))
 
+(define identifier
+    (token (++ alnum))
+)
+
 (define (name n)
-    (token (do!
-        (s <- (++ alnum))
+    (do!
+        (s <- identifier)
         (if (string=? s n) (Parser_pure n) Parser_empty)
-    ))
+    )
 )
 
 (define digit (satisfy char-numeric?))

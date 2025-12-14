@@ -37,8 +37,10 @@ func symbol(_ c: Character) -> Parser<Character>{
 
 let alnum = satisfy({ (c) in c.isLetter || c.isNumber || c == "_" })
 
+let identifier = token(some(alnum))
+
 func name(_ n: String) -> Parser<String>{
-	return token(some(alnum).flatMap({ $0 == n ? Parser.pure(n) : Parser<String>.empty() }))
+	return identifier.flatMap({ $0 == n ? Parser.pure(n) : Parser<String>.empty() })
 }
 
 func optional_s(_ p: Parser<String>) -> Parser<String>{

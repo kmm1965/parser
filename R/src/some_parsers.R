@@ -40,8 +40,10 @@ symbol <- function(c) {
 
 alnum <- satisfy(function(c){ grepl("[[:alnum:]]", c) || c == '_' })
 
+identifier <- some(alnum) %>% token()
+
 name <- function(n) {
-  some(alnum) %>% parser_and_then(function(n2){ if(n2 == n) pure(n) else empty }) %>% token()
+  identifier %>% parser_and_then(function(n2){ if(n2 == n) pure(n) else empty })
 }
 
 optional_s <- function(p) {

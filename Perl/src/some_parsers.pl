@@ -19,10 +19,14 @@ sub alnum {
   Parser->satisfy(sub { shift =~ /\w/ })
 }
 
+sub identifier {
+  alnum->some->token
+}
+
 sub name {
   my ($class, $n) = @_;
-  alnum->some->andThen(sub {
-    (shift eq $n ? Parser->pure($n) : Parser->empty)->token
+  identifier->andThen(sub {
+    shift eq $n ? Parser->pure($n) : Parser->empty
   })
 }
 

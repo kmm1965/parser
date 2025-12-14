@@ -37,7 +37,9 @@ let is_digit digit =
 
 let alnum = satisfy (fun c -> is_alpha c || is_digit c || c == '_')
 
-let name n = token (some alnum) >>= (fun s -> if String.equal s n then pure n else empty)
+let identifier = token (some alnum)
+
+let name n = identifier >>= (fun s -> if String.equal s n then pure n else empty)
 
 let optional_s p = p <||> empty_string
 

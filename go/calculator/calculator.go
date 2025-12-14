@@ -6,55 +6,6 @@ import (
     "math"
 )
 
-func def_object[A any] (n string, x A) parser.Parser[A] {
-    return parser.Skip(sp.Name(n), parser.Pure(x))
-}
-
-func fold[A any] (l []parser.Parser[A]) parser.Parser[A] {
-    p := parser.Empty[A]()
-    for _, q := range l {
-        p = parser.OrElse(p, q)
-    }
-    return p
-}
-
-func funcs () parser.Parser[func(float64) float64] {
-    return fold([]parser.Parser[func(float64) float64] {
-        def_object("sin",   math.Sin),
-        def_object("cos",   math.Cos),
-        def_object("asin",  math.Asin),
-        def_object("acos",  math.Acos),
-        def_object("sinh",  math.Sinh),
-        def_object("cosh",  math.Cosh),
-        def_object("asinh", math.Asinh),
-        def_object("acosh", math.Acosh),
-        def_object("tan",   math.Tan),
-        def_object("atan",  math.Atan),
-        def_object("log",   math.Log),
-        def_object("log10", math.Log10),
-        def_object("exp",   math.Exp),
-        def_object("sqrt",  math.Sqrt),
-        def_object("sqr",   func (x float64) float64 { return x * x }) })
-}
-
-func consts () parser.Parser[float64] {
-    return fold([]parser.Parser[float64] {
-        def_object("E",        2.71828182845904523536),
-        def_object("PI",       3.14159265358979323846),
-        def_object("LOG2E",    1.44269504088896340736),  // log2(e)
-        def_object("LOG10E",   0.434294481903251827651), // log10(e)
-        def_object("LN2",      0.693147180559945309417), // ln(2)
-        def_object("LN10",     2.30258509299404568402),  // ln(10)
-        def_object("PI_2",     1.57079632679489661923),  // pi/2
-        def_object("PI_4",     0.785398163397448309616), // pi/4
-        def_object("1_PI",     0.318309886183790671538), // 1/pi
-        def_object("2_PI",     0.636619772367581343076), // 2/pi
-        def_object("2_SQRTPI", 1.12837916709551257390),  // 2/sqrt(pi)
-        def_object("SQRT2",    1.41421356237309504880),  // sqrt(2)
-        def_object("SQRT1_2",  0.707106781186547524401), // 1/sqrt(2)
-    })
-}
-
 func Op2(c byte, f func(float64, float64) float64) parser.Parser[func(float64, float64) float64] {
     return parser.SkipGet(sp.Symbol(c),
         func () parser.Parser[func(float64, float64) float64] { return parser.Pure(f) })
@@ -78,6 +29,64 @@ func Div() parser.Parser[func(float64, float64) float64] {
 
 func Pow() parser.Parser[func(float64, float64) float64] {
     return Op2('^', func (x float64, y float64) float64 { return math.Exp(y * math.Log(x)) })
+}
+
+func fold[A any] (l []parser.Parser[A]) parser.Parser[A] {
+    p := parser.Empty[A]()
+    for _, q := range l {
+        p = parser.OrElse(p, q)
+    }
+    return p
+}
+
+func guard[A any] (b bool, x A) parser.Parser[A] {
+    if b {
+        return parser.Pure(x)
+    } else {
+        return parser.Empty[A]()
+    }
+}
+
+func funcs () parser.Parser[func(float64) float64] {
+    return parser.FlatMap(sp.Identifier(), func (n string) parser.Parser[func(float64) float64] {
+        return fold([]parser.Parser[func(float64) float64] {
+            guard(n == "sin",   math.Sin),
+            guard(n == "cos",   math.Cos),
+            guard(n == "asin",  math.Asin),
+            guard(n == "acos",  math.Acos),
+            guard(n == "sinh",  math.Sinh),
+            guard(n == "cosh",  math.Cosh),
+            guard(n == "asinh", math.Asinh),
+            guard(n == "acosh", math.Acosh),
+            guard(n == "tan",   math.Tan),
+            guard(n == "atan",  math.Atan),
+            guard(n == "log",   math.Log),
+            guard(n == "log10", math.Log10),
+            guard(n == "exp",   math.Exp),
+            guard(n == "sqrt",  math.Sqrt),
+            guard(n == "sqr",   func (x float64) float64 { return x * x }),
+        })
+    })
+}
+
+func consts () parser.Parser[float64] {
+    return parser.FlatMap(sp.Identifier(), func (n string) parser.Parser[float64] {
+        return fold([]parser.Parser[float64] {
+            guard(n == "E",        2.71828182845904523536),
+            guard(n == "PI",       3.14159265358979323846),
+            guard(n == "LOG2E",    1.44269504088896340736),  // log2(e)
+            guard(n == "LOG10E",   0.434294481903251827651), // log10(e)
+            guard(n == "LN2",      0.693147180559945309417), // ln(2)
+            guard(n == "LN10",     2.30258509299404568402),  // ln(10)
+            guard(n == "PI_2",     1.57079632679489661923),  // pi/2
+            guard(n == "PI_4",     0.785398163397448309616), // pi/4
+            guard(n == "1_PI",     0.318309886183790671538), // 1/pi
+            guard(n == "2_PI",     0.636619772367581343076), // 2/pi
+            guard(n == "2_SQRTPI", 1.12837916709551257390),  // 2/sqrt(pi)
+            guard(n == "SQRT2",    1.41421356237309504880),  // sqrt(2)
+            guard(n == "SQRT1_2",  0.707106781186547524401), // 1/sqrt(2)
+        })
+    })
 }
 
 func Expr() parser.Parser[float64] {

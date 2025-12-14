@@ -8,8 +8,7 @@
 
         public static Parser<char> Symbol(char c) => Char_(c).Token();
 
-        public static Parser<string> Name(string n) => alnum.Some()
-            .FlatMap(s => s.Equals(n) ? Parser<string>.Pure(n) : Parser<string>.Empty()).Token();
+        public static Parser<string> Indentifier => alnum.Some().Token();
 
         public static Parser<char> digit => Parser<char>.Satisfy(Char.IsDigit);
 

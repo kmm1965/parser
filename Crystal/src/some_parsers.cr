@@ -45,8 +45,12 @@ class SomeParsers
     satisfy{ |c| c.alphanumeric? || c == '_' }
   end
 
-  def self.name(n : String) : Parser(String)
-    token(some(alnum).flat_map{ |n2| n2 == n ? Parser.pure(n) : Parser(String).empty })
+  def self.identifier : Parser(String)
+    token(some(alnum))
+  end
+
+  def self.name1(n : String) : Parser(String)
+    identifier.flat_map{ |n2| n2 == n ? Parser.pure(n) : Parser(String).empty }
   end
 
   def self.optional_s(p : Parser(String)) : Parser(String)

@@ -14,44 +14,44 @@ class Calculator {
         return x * x
     }
 
-    static Parser fold(List<Parser> parsers) {
+    static Parser fold(Parser... parsers) {
         return parsers.inject(Parser.empty(), { Parser p0, Parser p -> p0.orElse { p } })
     }
 
-    static  Parser def_object(String name, value){
-        return SomeParsers.name(name).skip(() -> Parser.pure(value))
+    static Parser guard(boolean b, value){
+        return b ? Parser.pure(value) : Parser.empty()
     }
 
-    static Parser funcs = fold([
-        def_object("sin",   Math::sin),
-        def_object("cos",   Math::cos),
-        def_object("asin",  Math::asin),
-        def_object("acos",  Math::acos),
-        def_object("sinh",  Math::sinh),
-        def_object("cosh",  Math::cosh),
-        def_object("tan",   Math::tan),
-        def_object("log",   Math::log),
-        def_object("log10", Math::log10),
-        def_object("exp",   Math::exp),
-        def_object("sqrt",  Math::sqrt),
-        def_object("sqr",   Calculator::sqr)
-    ])
+    static Parser funcs = SomeParsers.identifier.flatMap { n -> fold(
+        guard(n == "sin", Math::sin),
+        guard(n == "cos", Math::cos),
+        guard(n == "asin", Math::asin),
+        guard(n == "acos", Math::acos),
+        guard(n == "sinh", Math::sinh),
+        guard(n == "cosh", Math::cosh),
+        guard(n == "tan", Math::tan),
+        guard(n == "log", Math::log),
+        guard(n == "log10", Math::log10),
+        guard(n == "exp", Math::exp),
+        guard(n == "sqrt", Math::sqrt),
+        guard(n == "sqr", Calculator::sqr)
+    )}
 
-    static Parser consts = fold([
-        def_object("E",        Math.E),
-        def_object("PI",       Math.PI),
-        def_object("LOG2E",    1.44269504088896340736),  // log2(e)
-        def_object("LOG10E",   0.434294481903251827651), // log10(e)
-        def_object("LN2",      0.693147180559945309417), // ln(2)
-        def_object("LN10",     2.30258509299404568402),  // ln(10)
-        def_object("PI_2",     1.57079632679489661923),  // pi/2
-        def_object("PI_4",     0.785398163397448309616), // pi/4
-        def_object("1_PI",     0.318309886183790671538), // 1/pi
-        def_object("2_PI",     0.636619772367581343076), // 2/pi
-        def_object("2_SQRTPI", 1.12837916709551257390),  // 2/sqrt(pi)
-        def_object("SQRT2",    1.41421356237309504880),  // sqrt(2)
-        def_object("SQRT1_2",  0.707106781186547524401)  // 1/sqrt(2)
-    ])
+    static Parser consts = SomeParsers.identifier.flatMap { n -> fold(
+        guard(n == "E",        Math.E),
+        guard(n == "PI",       Math.PI),
+        guard(n == "LOG2E",    1.44269504088896340736),  // log2(e)
+        guard(n == "LOG10E",   0.434294481903251827651), // log10(e)
+        guard(n == "LN2",      0.693147180559945309417), // ln(2)
+        guard(n == "LN10",     2.30258509299404568402),  // ln(10)
+        guard(n == "PI_2",     1.57079632679489661923),  // pi/2
+        guard(n == "PI_4",     0.785398163397448309616), // pi/4
+        guard(n == "1_PI",     0.318309886183790671538), // 1/pi
+        guard(n == "2_PI",     0.636619772367581343076), // 2/pi
+        guard(n == "2_SQRTPI", 1.12837916709551257390),  // 2/sqrt(pi)
+        guard(n == "SQRT2",    1.41421356237309504880),  // sqrt(2)
+        guard(n == "SQRT1_2",  0.707106781186547524401)  // 1/sqrt(2)
+    )}
 
     static Parser expr_in_brackets(){
         return SomeParsers.between(SomeParsers.symbol('(' as char), SomeParsers.symbol(')' as char), { expr() })

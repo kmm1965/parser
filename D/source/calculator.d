@@ -7,30 +7,30 @@ import std.typecons: Tuple, tuple;
     return x * x;
 }
 
-Parser!T def_object(T)(string n, T x) pure {
-    return name(n) >> Parser_pure(x);
+Parser!T guard(T)(bool b, T x) pure {
+    return b ? Parser_pure(x) : Parser!T.empty;
 }
 
 auto funcs() pure
 {
     import std.math: sin, cos, asin, acos, sinh, cosh, asinh, acosh, tan, atan, log, log10, exp, sqrt;
-    import std.math.constants: LN10;
 
-    return def_object("sin",   (double x) => sin(x)) |
-           def_object("cos",   (double x) => cos(x)) |
-           def_object("asin",  (double x) => asin(x)) |
-           def_object("acos",  (double x) => acos(x)) |
-           def_object("sinh",  (double x) => sinh(x)) |
-           def_object("cosh",  (double x) => cosh(x)) |
-           def_object("asinh", (double x) => asinh(x)) |
-           def_object("acosh", (double x) => acosh(x)) |
-           def_object("tan",   (double x) => tan(x)) |
-           def_object("atan",  (double x) => atan(x)) |
-           def_object("log",   (double x) => log(x)) |
-           def_object("log10", (double x) => log10(x)) |
-           def_object("exp",   (double x) => exp(x)) |
-           def_object("sqrt",  (double x) => sqrt(x)) |
-           def_object("sqr",   (double x) => sqr(x));
+    return identifier.and_then!(n =>
+        guard(n == "sin",   (double x) => sin(x)) |
+        guard(n == "cos",   (double x) => cos(x)) |
+        guard(n == "asin",  (double x) => asin(x)) |
+        guard(n == "acos",  (double x) => acos(x)) |
+        guard(n == "sinh",  (double x) => sinh(x)) |
+        guard(n == "cosh",  (double x) => cosh(x)) |
+        guard(n == "asinh", (double x) => asinh(x)) |
+        guard(n == "acosh", (double x) => acosh(x)) |
+        guard(n == "tan",   (double x) => tan(x)) |
+        guard(n == "atan",  (double x) => atan(x)) |
+        guard(n == "log",   (double x) => log(x)) |
+        guard(n == "log10", (double x) => log10(x)) |
+        guard(n == "exp",   (double x) => exp(x)) |
+        guard(n == "sqrt",  (double x) => sqrt(x)) |
+        guard(n == "sqr",   (double x) => sqr(x)));
 }
 
 @("funcs unit test")
@@ -57,19 +57,20 @@ auto consts() pure
 {
     import std.math.constants: E, LOG2E, LOG10E, LN2, LN10, PI, PI_2, PI_4, M_1_PI, M_2_PI, M_2_SQRTPI, SQRT2, SQRT1_2;
 
-    return def_object("E",        cast(double)E) |
-           def_object("LOG2E",    cast(double)LOG2E) |
-           def_object("LOG10E",   cast(double)LOG10E) |
-           def_object("LN2",      cast(double)LN2) |
-           def_object("LN10",     cast(double)LN10) |
-           def_object("PI",       cast(double)PI) |
-           def_object("PI_2",     cast(double)PI_2) |
-           def_object("PI_4",     cast(double)PI_4) |
-           def_object("1_PI",     cast(double)M_1_PI) |
-           def_object("2_PI",     cast(double)M_2_PI) |
-           def_object("2_SQRTPI", cast(double)M_2_SQRTPI) |
-           def_object("SQRT2",    cast(double)SQRT2) |
-           def_object("SQRT1_2",  cast(double)SQRT1_2);
+    return identifier.and_then!(n =>
+        guard(n == "E",        cast(double)E) |
+        guard(n == "LOG2E",    cast(double)LOG2E) |
+        guard(n == "LOG10E",   cast(double)LOG10E) |
+        guard(n == "LN2",      cast(double)LN2) |
+        guard(n == "LN10",     cast(double)LN10) |
+        guard(n == "PI",       cast(double)PI) |
+        guard(n == "PI_2",     cast(double)PI_2) |
+        guard(n == "PI_4",     cast(double)PI_4) |
+        guard(n == "1_PI",     cast(double)M_1_PI) |
+        guard(n == "2_PI",     cast(double)M_2_PI) |
+        guard(n == "2_SQRTPI", cast(double)M_2_SQRTPI) |
+        guard(n == "SQRT2",    cast(double)SQRT2) |
+        guard(n == "SQRT1_2",  cast(double)SQRT1_2));
 }
 
 @("consts unit test")

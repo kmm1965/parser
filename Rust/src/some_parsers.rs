@@ -45,8 +45,12 @@ pub fn alnum<'a>() -> Parser<'a, char> {
     satisfy(|c| c.is_alphanumeric() || c == '_')
 }
 
+pub fn identifier<'a>() -> Parser<'a, String> {
+    token(some(alnum()))
+}
+
 pub fn name<'a>(n: &'a str) -> Parser<'a, String> {
-    token(some(alnum()).and_then(move |s| if s == n.to_string() { Parser::pure(n.to_string()) } else { Parser::empty() }))
+    identifier().and_then(move |s| if s == n.to_string() { Parser::pure(n.to_string()) } else { Parser::empty() })
 }
 
 pub fn optional_s<'a>(p: Parser<'a, String>) -> Parser<'a, String> {
